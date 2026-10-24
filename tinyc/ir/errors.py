@@ -19,3 +19,12 @@ class InputError(ValueError):
 
 class RangeError(ArithmeticError):
     """A value does not fit in i32. tiny-gpu raises on this, so the semantics reject it."""
+
+
+class PassError(Exception):
+    """A pass rejected the program (e.g. a target cannot run it). `loc` points at the source."""
+
+    def __init__(self, message: str, loc=None):
+        self.message = message
+        self.loc = loc
+        super().__init__(f"{loc}: {message}" if loc else message)

@@ -16,7 +16,8 @@ Verilator→WASM RTL). Pipeline: `.tiny → AST → Graph IR → Tile IR | Kerne
 git submodule update --init
 python3 -m venv .venv && .venv/bin/pip install -e ".[dev]" && .venv/bin/pip install -e targets/tiny-gpu --no-deps
 source scripts/env.sh
-tinyc examples/mm_relu.tiny --locs          # Graph IR (or --emit ast); later: --target both -O2 --run --stats
+tinyc examples/mm_relu.tiny --locs          # optimized Graph IR (--emit ast, -O0, --target gpu|tpu,
+                                            #   --print-after-all, --verify-each, --time-passes, --disable PASS)
 pytest -q                                   # full suite
 pytest --update-golden                      # rewrite tests/golden/* after reviewing the diff
 cd web && pnpm dev | build | lint | typecheck | test

@@ -10,7 +10,12 @@ def _op_text(op: Op) -> str:
         assert op.data is not None
         body = f"const {op.data.tolist()!r}"
     else:
-        body = f"{op.kind} " + ", ".join(f"%{v.name}" for v in op.operands)
+        attrs = (
+            "{" + ",".join(f"{k}={v}" for k, v in sorted(op.attrs.items())) + "}"
+            if op.attrs
+            else ""
+        )
+        body = f"{op.kind}{attrs} " + ", ".join(f"%{v.name}" for v in op.operands)
     return f"%{op.result.name} = {body} : {op.result.type}"
 
 

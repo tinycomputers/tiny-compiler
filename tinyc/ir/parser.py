@@ -118,6 +118,20 @@ class _Parser:
         self.take("punct", ")")
         return Loc(file, line, col)
 
+    def attrs(self) -> dict[str, str]:
+        """`{key=word,word,...}` directly after the op kind (only `epilogue` exists today)."""
+        if not self.at("punct", "{"):
+            return {}
+        self.pos += 1
+        key = self.take("word").text
+        self.take("punct", "=")
+        words = [self.take("word").text]
+        while self.at("punct", ","):
+            self.pos += 1
+            words.append(self.take("word").text)
+        self.take("punct", "}")
+        return {key: ",".join(words)}
+
     def op(self) -> Op:
         res_tok = self.take("val")
         self.take("punct", "=")
@@ -125,6 +139,7 @@ class _Parser:
         kind = kind_tok.text
         if kind not in OP_ARITY:
             raise self.error(f"unknown op '{kind}'", kind_tok.span)
+        attrs = self.attrs()
         operands, data, lit_span = [], None, self.tok.span
         if kind == "const":
             lit = self.literal()
@@ -144,7 +159,7 @@ class _Parser:
                 raise self.error(
                     f"const data has shape {list(data.shape)}, type says {ty}", lit_span
                 )
-        return Op(kind, operands, self.define(res_tok, ty), self.loc(), data)
+        return Op(kind, operands, self.define(res_tok, ty), self.loc(), data, attrs)
 
     def func(self) -> Func:
         self.take("word", "func")

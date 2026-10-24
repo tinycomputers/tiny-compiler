@@ -2,8 +2,9 @@
 
 Semantics (shared with `ir.interp`, which is an independent scalar implementation):
   * inputs must fit their declared dtype; every op computes in int64 on widened operands;
-  * every op result must fit in i32, otherwise RangeError (tiny-gpu raises on overflow).
-    Only final results are checked here; Phase 2's range analysis bounds partial sums as well.
+  * every op result must fit in i32, otherwise RangeError (tiny-gpu raises on overflow);
+  * a fused matmul (`epilogue=bias,relu`) checks each stage's result, exactly like the unfused ops.
+    Partial sums are not checked here; `passes.range_check` bounds them statically.
 """
 
 from __future__ import annotations
@@ -14,7 +15,7 @@ import numpy as np
 
 from tinyc.ir.errors import InputError, RangeError
 from tinyc.ir.graph import Func
-from tinyc.ir.types import RANGES
+from tinyc.ir.types import RANGES, epilogue
 
 I32 = RANGES["i32"]
 
@@ -38,21 +39,31 @@ def validate_inputs(func: Func, inputs: Mapping[str, object]) -> dict[str, np.nd
     return out
 
 
+def _check(r: np.ndarray, name: str, what: str) -> np.ndarray:
+    if r.size and (r.min() < I32[0] or r.max() > I32[1]):
+        raise RangeError(f"%{name} ({what}) does not fit in i32")
+    return r
+
+
+def eval_op(kind, xs, attrs=None, data=None, name="?") -> np.ndarray:
+    """Evaluate one op on int64 arrays (used by `evaluate` and by constant folding)."""
+    if kind == "const":
+        return _check(np.array(data, dtype=np.int64), name, kind)
+    if kind == "matmul":
+        r = _check(xs[0] @ xs[1], name, "matmul")
+        for stage in epilogue(attrs):
+            r = _check(r + xs[2], name, "matmul bias add") if stage == "bias" else np.maximum(r, 0)
+        return r
+    if kind == "add":
+        return _check(xs[0] + xs[1], name, "add")
+    return np.maximum(xs[0], 0)  # relu
+
+
 def evaluate(func: Func, inputs: Mapping[str, object]) -> list[np.ndarray]:
-    env = {k: v for k, v in validate_inputs(func, inputs).items()}
+    env = dict(validate_inputs(func, inputs))
     for op in func.ops:
-        x = [env[v.name] for v in op.operands]
-        if op.kind == "const":
-            r = op.data
-        elif op.kind == "matmul":
-            r = x[0] @ x[1]
-        elif op.kind == "add":
-            r = x[0] + x[1]
-        else:  # relu
-            r = np.maximum(x[0], 0)
-        if r.size and (r.min() < I32[0] or r.max() > I32[1]):
-            raise RangeError(f"%{op.result.name} ({op.kind}) does not fit in i32")
-        env[op.result.name] = r
+        xs = [env[v.name] for v in op.operands]
+        env[op.result.name] = eval_op(op.kind, xs, op.attrs, op.data, op.result.name)
     return [env[v.name] for v in func.outputs]
 
 

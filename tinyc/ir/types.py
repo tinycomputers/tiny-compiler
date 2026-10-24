@@ -6,7 +6,7 @@ differ between "what lowering produced" and "what the verifier accepts".
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from tinyc.ir.errors import OpTypeError
@@ -15,6 +15,8 @@ DTYPES = ("i8", "i32")
 RANGES = {"i8": (-128, 127), "i32": (-(2**31), 2**31 - 1)}
 MAX_RANK = 2
 OP_ARITY = {"const": 0, "relu": 1, "matmul": 2, "add": 2}
+# A fused matmul applies these stages, in this order, to its result: `+ bias` then `relu`.
+EPILOGUE_STAGES = ("bias", "relu")
 
 
 @dataclass(frozen=True)
@@ -48,12 +50,28 @@ def type_problem(t: TensorType) -> str | None:
     return None
 
 
-def infer_result_type(kind: str, operands: Sequence[TensorType]) -> TensorType:
+def epilogue(attrs: Mapping[str, str] | None) -> tuple[str, ...]:
+    """The fused stages of a matmul ('bias', 'relu'), validated and in canonical order."""
+    raw = (attrs or {}).get("epilogue", "")
+    parts = tuple(p for p in raw.split(",") if p)
+    ordered = tuple(s for s in EPILOGUE_STAGES if s in parts)
+    if parts != ordered:
+        raise OpTypeError(f"invalid epilogue '{raw}' (allowed: bias, relu, in that order)")
+    return parts
+
+
+def expected_arity(kind: str, attrs: Mapping[str, str] | None = None) -> int:
+    return OP_ARITY[kind] + (kind == "matmul" and "bias" in epilogue(attrs))
+
+
+def infer_result_type(
+    kind: str, operands: Sequence[TensorType], attrs: Mapping[str, str] | None = None
+) -> TensorType:
     """Result type of a non-const op, or OpTypeError with a user-facing message."""
     if kind == "relu":
         (x,) = operands
         return x
-    a, b = operands
+    a, b = operands[0], operands[1]
     if kind == "matmul":
         if a.rank != 2 or b.rank != 2:
             raise OpTypeError(f"matmul needs rank-2 operands (got {a} @ {b})")
@@ -61,6 +79,10 @@ def infer_result_type(kind: str, operands: Sequence[TensorType]) -> TensorType:
             raise OpTypeError(
                 f"matmul inner dimensions differ: {a.shape[1]} vs {b.shape[0]} ({a} @ {b})"
             )
+        if "bias" in epilogue(attrs):
+            bias = operands[2]
+            if bias.rank != 1 or bias.shape[0] != b.shape[1]:
+                raise OpTypeError(f"matmul bias must be [{b.shape[1]}], got {bias}")
         return TensorType("i32", (a.shape[0], b.shape[1]))
     if kind == "add":
         if a.shape == b.shape:

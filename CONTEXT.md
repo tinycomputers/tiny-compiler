@@ -13,7 +13,9 @@ faked; host-side work is always labelled as host work.
 - Phase 0 (scaffold + drive both targets from pytest): DONE. 17 tests green (runners + target contract), ruff/black clean.
 - Phase 1 (frontend + Graph IR + oracle): DONE. 90 tests green: lexer/parser/diagnostics (20 golden error messages), Graph IR
   printer/parser round trip, verifier, numpy oracle + independent scalar interpreter, 6 examples.
-- Next: Phase 2 (pass manager + graph passes).
+- Phase 2 (pass manager + graph passes): DONE. 183 tests green. Passes: shape-infer, canonicalize, const-fold, cse, dce,
+  fuse (matmul{epilogue=bias,relu}), range-check, legalize-tpu/gpu; `--verify-each`, `--print-after-all`, `--time-passes`.
+- Next: Phase 3 (TPU backend: Tile IR, tiling, `.ttpu.json`, cost model, `ttpu-exec` full command list).
 
 ## Fixed decisions (do not re-litigate; change only via docs/ARCHITECTURE.md)
 | Decision | Choice |
@@ -27,7 +29,8 @@ faked; host-side work is always labelled as host work.
 | GPU regalloc | Linear scan, budget 16 by default, no spilling (compile error) |
 | TPU mapping | 4×4 int8 passes, zero padding, K-accumulation + relu/bias as `host.*` ops |
 | TPU executor | Exactly one: `runtime/ttpu-exec.mjs` (Node in tests, browser in UI) |
-| Overflow | Range analysis must prove i32 fits; otherwise reject (tiny-gpu raises on overflow) |
+| Overflow | `range-check` proves every value fits i32 by intervals; otherwise reject (tiny-gpu raises on overflow). i32 *inputs* are assumed within ±2^20 (`PassContext.i32_input_range`); runners must respect it |
+| Fusion | `matmul{epilogue=bias,relu}`; the fused op takes the outermost absorbed op's loc. Backends must lower the epilogue |
 | Verification | Oracle (numpy) + per-pass translation validation + real targets + Hypothesis differential + golden + perf pins |
 
 ## Target gotchas (see PLAN §2)

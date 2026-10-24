@@ -6,7 +6,7 @@ import numpy as np
 
 from tinyc.ir.errors import OpTypeError, VerifyError
 from tinyc.ir.graph import Func
-from tinyc.ir.types import OP_ARITY, RANGES, infer_result_type, type_problem
+from tinyc.ir.types import OP_ARITY, RANGES, expected_arity, infer_result_type, type_problem
 
 
 def verify(func: Func) -> None:
@@ -29,10 +29,16 @@ def verify(func: Func) -> None:
         if op.kind not in OP_ARITY:
             problems.append(f"{where}: unknown op")
             continue
-        if len(op.operands) != OP_ARITY[op.kind]:
-            problems.append(
-                f"{where}: expects {OP_ARITY[op.kind]} operands, got {len(op.operands)}"
-            )
+        try:
+            arity = expected_arity(op.kind, op.attrs)
+        except OpTypeError as e:
+            problems.append(f"{where}: {e}")
+            continue
+        if op.attrs and (op.kind != "matmul" or set(op.attrs) != {"epilogue"}):
+            problems.append(f"{where}: unsupported attributes {sorted(op.attrs)}")
+            continue
+        if len(op.operands) != arity:
+            problems.append(f"{where}: expects {arity} operands, got {len(op.operands)}")
             continue
         if r.name in defined:
             problems.append(f"{where}: name already defined")
@@ -57,7 +63,7 @@ def verify(func: Func) -> None:
                 problems.append(f"{where}: only const may carry data")
             if operands_ok:
                 try:
-                    want = infer_result_type(op.kind, [v.type for v in op.operands])
+                    want = infer_result_type(op.kind, [v.type for v in op.operands], op.attrs)
                 except OpTypeError as e:
                     problems.append(f"{where}: {e}")
                 else:

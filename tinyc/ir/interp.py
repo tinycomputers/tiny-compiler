@@ -14,46 +14,57 @@ import numpy as np
 from tinyc.ir.errors import RangeError
 from tinyc.ir.graph import Func
 from tinyc.ir.ref import I32, validate_inputs
+from tinyc.ir.types import epilogue
 
 
 def _fits(v: int) -> bool:
     return I32[0] <= v <= I32[1]
 
 
-def _rows(x):  # rank-1 -> a single row
+def _rows(x):  # a rank-1 value is a single row
     return x if isinstance(x[0], list) else [x]
+
+
+def _check(r, name: str, what: str):
+    if not all(_fits(v) for row in _rows(r) for v in row):
+        raise RangeError(f"%{name} ({what}) does not fit in i32")
+    return r
+
+
+def _matmul(a, b):
+    return [[sum(a[i][k] * b[k][j] for k in range(len(b))) for j in range(len(b[0]))]
+            for i in range(len(a))]  # fmt: skip
+
+
+def _add(a, b):  # same shape, or a rank-1 operand broadcast over the rows of a rank-2 one
+    if isinstance(a[0], list) and not isinstance(b[0], list):
+        return [[x + y for x, y in zip(row, b)] for row in a]
+    if isinstance(b[0], list) and not isinstance(a[0], list):
+        return [[x + y for x, y in zip(a, row)] for row in b]
+    if isinstance(a[0], list):
+        return [[x + y for x, y in zip(ra, rb)] for ra, rb in zip(a, b)]
+    return [x + y for x, y in zip(a, b)]
+
+
+def _relu(x):
+    if isinstance(x[0], list):
+        return [[max(v, 0) for v in row] for row in x]
+    return [max(v, 0) for v in x]
 
 
 def run(func: Func, inputs: Mapping[str, object]) -> list[np.ndarray]:
     env = {k: v.tolist() for k, v in validate_inputs(func, inputs).items()}
     for op in func.ops:
-        name = op.result.name
+        name, xs = op.result.name, [env[v.name] for v in op.operands]
         if op.kind == "const":
             r = op.data.tolist()
         elif op.kind == "relu":
-            x = env[op.operands[0].name]
-            r = (
-                [[max(v, 0) for v in row] for row in x]
-                if isinstance(x[0], list)
-                else [max(v, 0) for v in x]
-            )
+            r = _relu(xs[0])
         elif op.kind == "matmul":
-            a, b = (env[v.name] for v in op.operands)
-            r = [
-                [sum(a[i][k] * b[k][j] for k in range(len(b))) for j in range(len(b[0]))]
-                for i in range(len(a))
-            ]
-        else:  # add, with row broadcast of a rank-1 operand
-            a, b = (env[v.name] for v in op.operands)
-            if isinstance(a[0], list) and not isinstance(b[0], list):
-                r = [[x + y for x, y in zip(row, b)] for row in a]
-            elif isinstance(b[0], list) and not isinstance(a[0], list):
-                r = [[x + y for x, y in zip(a, row)] for row in b]
-            elif isinstance(a[0], list):
-                r = [[x + y for x, y in zip(ra, rb)] for ra, rb in zip(a, b)]
-            else:
-                r = [x + y for x, y in zip(a, b)]
-        if not all(_fits(v) for row in _rows(r) for v in row):
-            raise RangeError(f"%{name} ({op.kind}) does not fit in i32")
+            r = _check(_matmul(xs[0], xs[1]), name, "matmul")
+            for stage in epilogue(op.attrs):
+                r = _check(_add(r, xs[2]), name, "matmul bias add") if stage == "bias" else _relu(r)
+        else:
+            r = _check(_add(xs[0], xs[1]), name, "add")
         env[name] = r
     return [np.array(env[v.name], dtype=np.int64) for v in func.outputs]
