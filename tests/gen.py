@@ -14,8 +14,8 @@ def _fmt(dtype, shape):
 
 
 def _nested(draw, shape, lo, hi):
-    if len(shape) == 1:
-        return [draw(st.integers(lo, hi)) for _ in range(shape[0])]
+    if len(shape) == 1:  # zeros are common on purpose: they make whole constant tiles zero
+        return [draw(st.one_of(st.just(0), st.integers(lo, hi))) for _ in range(shape[0])]
     return [_nested(draw, shape[1:], lo, hi) for _ in range(shape[0])]
 
 
@@ -84,5 +84,64 @@ def programs(draw, max_ops: int = 6) -> str:
     extra = draw(st.integers(0, len(pool) - 1))
     if pool[extra][0] not in outs and draw(st.booleans()):
         outs.append(pool[extra][0])
+    lines.append("output " + ", ".join(outs))
+    return "\n".join(lines) + "\n"
+
+
+TPU_DIMS = st.sampled_from([1, 2, 3, 4, 5, 8, 9])  # 1..3 tiles per dimension, some partial
+EPILOGUES = [
+    "{m}",
+    "relu({m})",
+    "{m} + {w}",
+    "relu({m} + {w})",
+    "{w} + {m}",
+    "relu(relu({m}))",
+    "{m} + {m}",
+    "relu({m}) + relu({m})",
+    "relu({m} + {w}) + {m}",
+]
+
+
+def _const_with_zero_blocks(draw, rows, cols):
+    """An i8 matrix whose 4x4 blocks are zero with probability 0.4 (so whole tiles skip)."""
+    lo, hi = RANGES["i8"]
+    zero = {
+        (bi, bj): draw(st.integers(0, 4)) < 2
+        for bi in range((rows + 3) // 4)
+        for bj in range((cols + 3) // 4)
+    }
+    return [
+        [0 if zero[(i // 4, j // 4)] else draw(st.integers(lo, hi)) for j in range(cols)]
+        for i in range(rows)
+    ]
+
+
+@st.composite
+def tpu_programs(draw) -> str:
+    """Programs aimed at tiny-tpu: multi-tile matmuls, constants with zero tiles, every epilogue
+    shape, and a mix of fused and host-side add/relu. Always legal for the TPU."""
+    lines: list[str] = []
+    outs: list[str] = []
+    for chain in range(draw(st.integers(1, 2))):
+        m, k, n = draw(TPU_DIMS), draw(TPU_DIMS), draw(TPU_DIMS)
+        left_const = draw(st.integers(0, 4)) == 0
+        right_const = not left_const and draw(st.booleans())
+        if left_const:
+            lines.append(f"const L{chain} : i8[{m}, {k}] = {_const_with_zero_blocks(draw, m, k)}")
+            lines.append(f"input R{chain} : i8[{k}, {n}]")
+            a, b = f"L{chain}", f"R{chain}"
+        elif right_const:
+            lines.append(f"input L{chain} : i8[{m}, {k}]")
+            lines.append(f"const R{chain} : i8[{k}, {n}] = {_const_with_zero_blocks(draw, k, n)}")
+            a, b = f"L{chain}", f"R{chain}"
+        else:
+            lines.append(f"input L{chain} : i8[{m}, {k}]")
+            lines.append(f"input R{chain} : i8[{k}, {n}]")
+            a, b = f"L{chain}", f"R{chain}"
+        form = draw(st.sampled_from(EPILOGUES))
+        if "{w}" in form:
+            lines.append(f"input w{chain} : {draw(st.sampled_from(['i8', 'i32']))}[{n}]")
+        lines.append(f"Y{chain} = " + form.format(m=f"{a} @ {b}", w=f"w{chain}"))
+        outs.append(f"Y{chain}")
     lines.append("output " + ", ".join(outs))
     return "\n".join(lines) + "\n"

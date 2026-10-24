@@ -153,7 +153,7 @@ tpu.schedule @main tile=4x4 {
   schedule order matches tiny-tpu's `tilingSchedule()` (output tile row-major, K innermost),
   so the existing tiny-tpu L3 view can display it.
 - **Tile passes:** skip passes whose A or B tile is all zero (constants only), sink `relu`/bias
-  into the last `host.acc` of each output tile, and report utilization (useful MACs ÷ 16 per pass).
+  into the last `host.acc` of each output tile, and report utilization (useful MACs ÷ 64 per pass: a pass is 4×4×4 MACs).
 - **Emit:** `.ttpu.json` = a buffer table, int8 tile payloads (or slice refs), and a command list
   (`pass`, `acc`, `relu`, `add_bias`, `store`). The format is versioned and has a JSON Schema
   in `docs/TTPU_FORMAT.md`.

@@ -18,6 +18,7 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[dev]" && .venv/bin/pip inst
 source scripts/env.sh
 tinyc examples/mm_relu.tiny --locs          # optimized Graph IR (--emit ast, -O0, --target gpu|tpu,
                                             #   --print-after-all, --verify-each, --time-passes, --disable PASS)
+tinyc examples/mm_relu.tiny --target tpu --run          # compile + run on the real RTL (also --emit tile|ttpu, --stats)
 pytest -q                                   # full suite
 pytest --update-golden                      # rewrite tests/golden/* after reviewing the diff
 cd web && pnpm dev | build | lint | typecheck | test

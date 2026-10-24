@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -27,5 +30,29 @@ def golden(request):
             return
         assert path.exists(), f"missing golden file {path}; run `pytest --update-golden`"
         assert actual == path.read_text(), f"{path} differs; review, then `pytest --update-golden`"
+
+    return check
+
+
+BASELINE = Path(__file__).resolve().parent / "perf_baseline.json"
+
+
+@pytest.fixture
+def perf_pin(request):
+    """`perf_pin(target, data)`: pin cost numbers per target in tests/perf_baseline.json.
+
+    An unexpected change fails; `--update-golden` rewrites only that target's entry.
+    """
+    update = request.config.getoption("--update-golden")
+
+    def check(target: str, data: dict) -> None:
+        baseline = json.loads(BASELINE.read_text()) if BASELINE.exists() else {}
+        if update:
+            baseline[target] = data
+            BASELINE.write_text(json.dumps(baseline, indent=2, sort_keys=True) + "\n")
+            return
+        assert (
+            baseline.get(target) == data
+        ), f"{target} cost numbers changed; if intended run `pytest --update-golden`"
 
     return check

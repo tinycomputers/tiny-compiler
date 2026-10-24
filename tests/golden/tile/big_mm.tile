@@ -1,0 +1,57 @@
+tpu.schedule @main(%A: i8[12,12], %B: i8[12,12]) -> (%1) tile=4x4 {
+  host.alloc %1 : i32[12,12] = 0
+  tpu.pass #0 a=%A[0:4,0:4] b=%B[0:4,0:4]  // 15 cyc
+  host.acc %1[0:4,0:4] += #0
+  tpu.pass #1 a=%A[0:4,4:8] b=%B[4:8,0:4]  // 15 cyc
+  host.acc %1[0:4,0:4] += #1
+  tpu.pass #2 a=%A[0:4,8:12] b=%B[8:12,0:4]  // 15 cyc
+  host.acc %1[0:4,0:4] += #2 {relu}
+  tpu.pass #3 a=%A[0:4,0:4] b=%B[0:4,4:8]  // 15 cyc
+  host.acc %1[0:4,4:8] += #3
+  tpu.pass #4 a=%A[0:4,4:8] b=%B[4:8,4:8]  // 15 cyc
+  host.acc %1[0:4,4:8] += #4
+  tpu.pass #5 a=%A[0:4,8:12] b=%B[8:12,4:8]  // 15 cyc
+  host.acc %1[0:4,4:8] += #5 {relu}
+  tpu.pass #6 a=%A[0:4,0:4] b=%B[0:4,8:12]  // 15 cyc
+  host.acc %1[0:4,8:12] += #6
+  tpu.pass #7 a=%A[0:4,4:8] b=%B[4:8,8:12]  // 15 cyc
+  host.acc %1[0:4,8:12] += #7
+  tpu.pass #8 a=%A[0:4,8:12] b=%B[8:12,8:12]  // 15 cyc
+  host.acc %1[0:4,8:12] += #8 {relu}
+  tpu.pass #9 a=%A[4:8,0:4] b=%B[0:4,0:4]  // 15 cyc
+  host.acc %1[4:8,0:4] += #9
+  tpu.pass #10 a=%A[4:8,4:8] b=%B[4:8,0:4]  // 15 cyc
+  host.acc %1[4:8,0:4] += #10
+  tpu.pass #11 a=%A[4:8,8:12] b=%B[8:12,0:4]  // 15 cyc
+  host.acc %1[4:8,0:4] += #11 {relu}
+  tpu.pass #12 a=%A[4:8,0:4] b=%B[0:4,4:8]  // 15 cyc
+  host.acc %1[4:8,4:8] += #12
+  tpu.pass #13 a=%A[4:8,4:8] b=%B[4:8,4:8]  // 15 cyc
+  host.acc %1[4:8,4:8] += #13
+  tpu.pass #14 a=%A[4:8,8:12] b=%B[8:12,4:8]  // 15 cyc
+  host.acc %1[4:8,4:8] += #14 {relu}
+  tpu.pass #15 a=%A[4:8,0:4] b=%B[0:4,8:12]  // 15 cyc
+  host.acc %1[4:8,8:12] += #15
+  tpu.pass #16 a=%A[4:8,4:8] b=%B[4:8,8:12]  // 15 cyc
+  host.acc %1[4:8,8:12] += #16
+  tpu.pass #17 a=%A[4:8,8:12] b=%B[8:12,8:12]  // 15 cyc
+  host.acc %1[4:8,8:12] += #17 {relu}
+  tpu.pass #18 a=%A[8:12,0:4] b=%B[0:4,0:4]  // 15 cyc
+  host.acc %1[8:12,0:4] += #18
+  tpu.pass #19 a=%A[8:12,4:8] b=%B[4:8,0:4]  // 15 cyc
+  host.acc %1[8:12,0:4] += #19
+  tpu.pass #20 a=%A[8:12,8:12] b=%B[8:12,0:4]  // 15 cyc
+  host.acc %1[8:12,0:4] += #20 {relu}
+  tpu.pass #21 a=%A[8:12,0:4] b=%B[0:4,4:8]  // 15 cyc
+  host.acc %1[8:12,4:8] += #21
+  tpu.pass #22 a=%A[8:12,4:8] b=%B[4:8,4:8]  // 15 cyc
+  host.acc %1[8:12,4:8] += #22
+  tpu.pass #23 a=%A[8:12,8:12] b=%B[8:12,4:8]  // 15 cyc
+  host.acc %1[8:12,4:8] += #23 {relu}
+  tpu.pass #24 a=%A[8:12,0:4] b=%B[0:4,8:12]  // 15 cyc
+  host.acc %1[8:12,8:12] += #24
+  tpu.pass #25 a=%A[8:12,4:8] b=%B[4:8,8:12]  // 15 cyc
+  host.acc %1[8:12,8:12] += #25
+  tpu.pass #26 a=%A[8:12,8:12] b=%B[8:12,8:12]  // 15 cyc
+  host.acc %1[8:12,8:12] += #26 {relu}
+}

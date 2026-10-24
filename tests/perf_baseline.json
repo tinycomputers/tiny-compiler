@@ -1,0 +1,138 @@
+{
+  "tpu": {
+    "O0": {
+      "big_mm": {
+        "host_ops": {
+          "acc": 27,
+          "alloc": 1,
+          "epilogue": 0,
+          "host_add": 0,
+          "host_relu": 1
+        },
+        "passes": 27,
+        "rtl_cycles": 405,
+        "useful_macs": 1728,
+        "utilization": 1.0
+      },
+      "const_mm": {
+        "host_ops": {
+          "acc": 1,
+          "alloc": 1,
+          "epilogue": 0,
+          "host_add": 0,
+          "host_relu": 1
+        },
+        "passes": 1,
+        "rtl_cycles": 15,
+        "useful_macs": 12,
+        "utilization": 0.1875
+      },
+      "mm": {
+        "host_ops": {
+          "acc": 1,
+          "alloc": 1,
+          "epilogue": 0,
+          "host_add": 0,
+          "host_relu": 0
+        },
+        "passes": 1,
+        "rtl_cycles": 15,
+        "useful_macs": 64,
+        "utilization": 1.0
+      },
+      "mm_bias_relu": {
+        "host_ops": {
+          "acc": 2,
+          "alloc": 1,
+          "epilogue": 0,
+          "host_add": 1,
+          "host_relu": 1
+        },
+        "passes": 2,
+        "rtl_cycles": 30,
+        "useful_macs": 128,
+        "utilization": 1.0
+      },
+      "mm_relu": {
+        "host_ops": {
+          "acc": 2,
+          "alloc": 1,
+          "epilogue": 0,
+          "host_add": 0,
+          "host_relu": 1
+        },
+        "passes": 2,
+        "rtl_cycles": 30,
+        "useful_macs": 128,
+        "utilization": 1.0
+      }
+    },
+    "O1": {
+      "big_mm": {
+        "host_ops": {
+          "acc": 27,
+          "alloc": 1,
+          "epilogue": 0,
+          "host_add": 0,
+          "host_relu": 0
+        },
+        "passes": 27,
+        "rtl_cycles": 405,
+        "useful_macs": 1728,
+        "utilization": 1.0
+      },
+      "const_mm": {
+        "host_ops": {
+          "acc": 1,
+          "alloc": 1,
+          "epilogue": 0,
+          "host_add": 0,
+          "host_relu": 0
+        },
+        "passes": 1,
+        "rtl_cycles": 15,
+        "useful_macs": 12,
+        "utilization": 0.1875
+      },
+      "mm": {
+        "host_ops": {
+          "acc": 1,
+          "alloc": 1,
+          "epilogue": 0,
+          "host_add": 0,
+          "host_relu": 0
+        },
+        "passes": 1,
+        "rtl_cycles": 15,
+        "useful_macs": 64,
+        "utilization": 1.0
+      },
+      "mm_bias_relu": {
+        "host_ops": {
+          "acc": 2,
+          "alloc": 1,
+          "epilogue": 0,
+          "host_add": 0,
+          "host_relu": 0
+        },
+        "passes": 2,
+        "rtl_cycles": 30,
+        "useful_macs": 128,
+        "utilization": 1.0
+      },
+      "mm_relu": {
+        "host_ops": {
+          "acc": 2,
+          "alloc": 1,
+          "epilogue": 0,
+          "host_add": 0,
+          "host_relu": 0
+        },
+        "passes": 2,
+        "rtl_cycles": 30,
+        "useful_macs": 128,
+        "utilization": 1.0
+      }
+    }
+  }
+}
