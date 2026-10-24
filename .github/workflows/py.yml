@@ -1,0 +1,26 @@
+name: py
+
+on:
+  push:
+    paths: ["tinyc/**", "runtime/**", "tests/**", "examples/**", "targets/**", "pyproject.toml", ".github/workflows/py.yml"]
+  pull_request:
+    paths: ["tinyc/**", "runtime/**", "tests/**", "examples/**", "targets/**", "pyproject.toml", ".github/workflows/py.yml"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: pip install -e ".[dev]" && pip install -e targets/tiny-gpu --no-deps
+      - run: ruff check . && black --check .
+      # The contract tests run first so a submodule bump fails loudly before anything else.
+      - run: pytest tests/test_targets_contract.py
+      - run: pytest

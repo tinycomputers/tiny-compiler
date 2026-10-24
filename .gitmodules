@@ -1,0 +1,7 @@
+[submodule "targets/tiny-gpu"]
+	path = targets/tiny-gpu
+	url = https://github.com/deaneeth/tiny-gpu
+	ignore = untracked
+[submodule "targets/tiny-tpu"]
+	path = targets/tiny-tpu
+	url = https://github.com/deaneeth/tiny-tpu
