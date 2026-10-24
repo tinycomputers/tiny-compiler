@@ -24,3 +24,9 @@ cd web && pnpm dev | build | lint | typecheck | test
 
 ## Branching
 `main` is protected: work on `feat/*`, `fix/*`, `docs/*` branches and open PRs.
+
+## Commit and PR rules
+- **Never add Claude (or any AI) as author or co-author** of a commit, PR or anything else: no
+  `Co-Authored-By: Claude ...` trailer, no "Generated with Claude Code" footer, no AI `--author`.
+  Commits carry only the repository owner's git identity.
+- Before pushing: `git log --format=%B | grep -i co-authored` must print nothing.
