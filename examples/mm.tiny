@@ -1,0 +1,5 @@
+# Plain 4x4 int8 matmul: one tiny-tpu pass, one thread per output element on tiny-gpu.
+input A : i8[4, 4]
+input B : i8[4, 4]
+C = A @ B
+output C

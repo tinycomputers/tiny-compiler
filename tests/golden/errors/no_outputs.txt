@@ -1,0 +1,4 @@
+no_outputs.tiny:2:1: error: program has no outputs
+2 | C = relu(A)
+  | ^^^^^^^^^^^
+  = note: add a line like `output C`

@@ -12,8 +12,11 @@ dependencies = ["numpy>=2.0"]
 [project.optional-dependencies]
 dev = ["pytest>=8", "hypothesis>=6.100", "black>=24.10", "ruff>=0.6"]
 
-[tool.setuptools]
-packages = ["tinyc", "runtime"]
+[tool.setuptools.packages.find]
+include = ["tinyc*", "runtime*"]
+
+[project.scripts]
+tinyc = "tinyc.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

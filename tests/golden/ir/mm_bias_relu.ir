@@ -1,0 +1,6 @@
+func @main(%X: i8[4,8], %W: i8[8,4], %b: i32[4]) -> (i32[4,4]) {
+  %0 = matmul %X, %W : i32[4,4]  loc("mm_bias_relu.tiny":5:10)
+  %1 = add %0, %b : i32[4,4]     loc("mm_bias_relu.tiny":5:10)
+  %2 = relu %1 : i32[4,4]        loc("mm_bias_relu.tiny":5:5)
+  return %2
+}

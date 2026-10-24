@@ -1,0 +1,3 @@
+output_twice.tiny:2:11: error: 'A' is already an output
+2 | output A, A
+  |           ^

@@ -1,0 +1,3 @@
+bad_type.tiny:1:11: error: expected a type ('i8' or 'i32'), found 'f32'
+1 | input A : f32[2, 2]
+  |           ^^^

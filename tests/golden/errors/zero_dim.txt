@@ -1,0 +1,3 @@
+zero_dim.tiny:1:14: error: dimensions must be positive
+1 | input A : i8[0, 2]
+  |              ^

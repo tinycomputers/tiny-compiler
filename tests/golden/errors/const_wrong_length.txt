@@ -1,0 +1,4 @@
+const_wrong_length.tiny:1:23: error: expected a list of 2 values, found 3
+1 | const W : i8[2, 2] = [[1, 2, 3],
+  |                       ^^^^^^^^^
+  = note: declared type is i8[2,2]

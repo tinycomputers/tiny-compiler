@@ -1,0 +1,6 @@
+# A dense layer: matmul, row-broadcast bias, relu.
+input X : i8[4, 8]
+input W : i8[8, 4]
+input b : i32[4]
+Y = relu(X @ W + b)
+output Y

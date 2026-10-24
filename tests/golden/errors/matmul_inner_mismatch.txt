@@ -1,0 +1,3 @@
+matmul_inner_mismatch.tiny:3:5: error: matmul inner dimensions differ: 8 vs 4 (i8[4,8] @ i8[4,4])
+3 | C = A @ B
+  |     ^^^^^

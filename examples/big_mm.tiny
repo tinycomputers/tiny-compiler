@@ -1,0 +1,5 @@
+# 12x12x12: 27 tiny-tpu passes once tiled.
+input A : i8[12, 12]
+input B : i8[12, 12]
+C = relu(A @ B)
+output C

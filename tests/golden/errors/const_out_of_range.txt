@@ -1,0 +1,4 @@
+const_out_of_range.tiny:1:27: error: value 300 does not fit in i8
+1 | const W : i8[1, 2] = [[1, 300]]
+  |                           ^^^
+  = note: i8 holds -128..127

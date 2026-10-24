@@ -1,0 +1,4 @@
+input A : i8[4, 4]
+input B : i8[3, 4]
+C = A + B
+output C

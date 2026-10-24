@@ -1,0 +1,6 @@
+# Weights baked into the program as a constant.
+input X : i8[3, 2]
+const W : i8[2, 2] = [[1, -2],
+                      [3, 4]]
+Y = relu(X @ W)
+output Y

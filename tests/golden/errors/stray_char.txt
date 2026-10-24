@@ -1,0 +1,3 @@
+stray_char.tiny:2:7: error: unexpected character '*'
+2 | C = A * A
+  |       ^

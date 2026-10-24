@@ -1,0 +1,4 @@
+func @main(%A: i8[4,4], %B: i8[4,4]) -> (i32[4,4]) {
+  %0 = matmul %A, %B : i32[4,4]  loc("mm.tiny":4:5)
+  return %0
+}

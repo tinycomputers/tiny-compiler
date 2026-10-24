@@ -1,0 +1,3 @@
+input features : i8[4, 4]
+C = relu(feature)
+output C
