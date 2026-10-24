@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-import numpy as np
-
 from tinyc.ir import ref
 from tinyc.ir.errors import RangeError
 from tinyc.ir.graph import Func
@@ -15,17 +13,6 @@ from tinyc.tpu.emit import to_json
 from tinyc.tpu.lower import lower
 from tinyc.tpu.tile_ir import Schedule, ScheduleError, print_schedule, verify_schedule
 from tinyc.tpu.tile_passes import TILE_PASSES
-
-
-def _expectations(func: Func, n: int, seed: int):
-    out = []
-    for i in range(n):
-        inputs = ref.random_inputs(func, np.random.default_rng(seed + i))
-        try:
-            out.append((inputs, ref.evaluate(func, inputs)))
-        except RangeError:
-            continue
-    return out
 
 
 def _problem(s: Schedule, expectations) -> str | None:
@@ -51,7 +38,7 @@ def compile_tile_ir(
     num_checks: int = 4,
 ) -> Schedule:
     """Lower a tpu-legalized Graph IR function and run the tile passes."""
-    expectations = _expectations(func, num_checks, seed) if verify_each else []
+    expectations = ref.seeded_expectations(func, num_checks, seed) if verify_each else []
     schedule = lower(func)
     stages = [("lower-to-tile", lambda: None)]
     if opt_level >= 1:

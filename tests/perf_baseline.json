@@ -1,4 +1,190 @@
 {
+  "gpu": {
+    "O0": {
+      "big_mm": {
+        "cycles": {
+          "max": 14,
+          "min": 13
+        },
+        "instructions": {
+          "max": 24048,
+          "min": 23904
+        },
+        "launches": 2,
+        "loads": 3600,
+        "registers": 4,
+        "stores": 288,
+        "threads": 288
+      },
+      "const_mm": {
+        "cycles": {
+          "max": 4,
+          "min": 3
+        },
+        "instructions": {
+          "max": 222,
+          "min": 216
+        },
+        "launches": 2,
+        "loads": 30,
+        "registers": 4,
+        "stores": 12,
+        "threads": 12
+      },
+      "mlp_gpu": {
+        "cycles": {
+          "max": 17,
+          "min": 16
+        },
+        "instructions": {
+          "max": 3912,
+          "min": 3888
+        },
+        "launches": 4,
+        "loads": 600,
+        "registers": 4,
+        "stores": 84,
+        "threads": 84
+      },
+      "mm": {
+        "cycles": {
+          "max": 4,
+          "min": 4
+        },
+        "instructions": {
+          "max": 896,
+          "min": 896
+        },
+        "launches": 1,
+        "loads": 128,
+        "registers": 4,
+        "stores": 16,
+        "threads": 16
+      },
+      "mm_bias_relu": {
+        "cycles": {
+          "max": 11,
+          "min": 10
+        },
+        "instructions": {
+          "max": 1952,
+          "min": 1936
+        },
+        "launches": 3,
+        "loads": 304,
+        "registers": 4,
+        "stores": 48,
+        "threads": 48
+      },
+      "mm_relu": {
+        "cycles": {
+          "max": 10,
+          "min": 9
+        },
+        "instructions": {
+          "max": 1840,
+          "min": 1824
+        },
+        "launches": 2,
+        "loads": 272,
+        "registers": 4,
+        "stores": 32,
+        "threads": 32
+      }
+    },
+    "O1": {
+      "big_mm": {
+        "cycles": {
+          "max": 13,
+          "min": 12
+        },
+        "instructions": {
+          "max": 23472,
+          "min": 23328
+        },
+        "launches": 1,
+        "loads": 3456,
+        "registers": 4,
+        "stores": 144,
+        "threads": 144
+      },
+      "const_mm": {
+        "cycles": {
+          "max": 3,
+          "min": 2
+        },
+        "instructions": {
+          "max": 198,
+          "min": 192
+        },
+        "launches": 1,
+        "loads": 24,
+        "registers": 4,
+        "stores": 6,
+        "threads": 6
+      },
+      "mlp_gpu": {
+        "cycles": {
+          "max": 15,
+          "min": 14
+        },
+        "instructions": {
+          "max": 3720,
+          "min": 3696
+        },
+        "launches": 2,
+        "loads": 552,
+        "registers": 4,
+        "stores": 36,
+        "threads": 36
+      },
+      "mm": {
+        "cycles": {
+          "max": 4,
+          "min": 4
+        },
+        "instructions": {
+          "max": 896,
+          "min": 896
+        },
+        "launches": 1,
+        "loads": 128,
+        "registers": 4,
+        "stores": 16,
+        "threads": 16
+      },
+      "mm_bias_relu": {
+        "cycles": {
+          "max": 9,
+          "min": 8
+        },
+        "instructions": {
+          "max": 1824,
+          "min": 1808
+        },
+        "launches": 1,
+        "loads": 272,
+        "registers": 4,
+        "stores": 16,
+        "threads": 16
+      },
+      "mm_relu": {
+        "cycles": {
+          "max": 9,
+          "min": 8
+        },
+        "instructions": {
+          "max": 1776,
+          "min": 1760
+        },
+        "launches": 1,
+        "loads": 256,
+        "registers": 4,
+        "stores": 16,
+        "threads": 16
+      }
+    }
+  },
   "tpu": {
     "O0": {
       "big_mm": {

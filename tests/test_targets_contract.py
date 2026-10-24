@@ -95,3 +95,51 @@ def test_submodules_are_pinned_and_checked_out():
     names = {line.split()[1] for line in status}
     assert names == {"targets/tiny-gpu", "targets/tiny-tpu"}
     assert not any(line.startswith(("-", "+", "U")) for line in status), status
+
+
+# --- tiny-gpu facts the GPU backend's code generation depends on (measured, PLAN §2.1) ------------
+
+
+def _run(src, **kw):
+    from runtime.gpu_runner import run_tgpu
+
+    kw.setdefault("grid", (1, 3))
+    kw.setdefault("mem_size", 16)
+    return run_tgpu(src, **kw)
+
+
+def test_gpu_a_label_starting_with_r_is_parsed_as_a_register():
+    # The emitter names labels L0, L1, ...; `relu_end` would crash tiny-gpu's assembler.
+    with pytest.raises(ValueError):
+        _run("SET R0, 1\nBRZ relu_end\nrelu_end:\nST 0, R0\n")
+    _run("SET R0, 1\nBRZ L0\nL0:\nST 0, R0\n")
+
+
+def test_gpu_a_loop_of_k_iterations_costs_k_cycles():
+    loop = "SET R0, 0\nL0:\nADD R0, R0, 1\nCMP R0, {k}\nBRLT L0\nST R7, R0\n"
+    for k in (1, 2, 5):
+        assert _run(loop.format(k=k)).cycles == k
+
+
+def test_gpu_relu_idiom_costs_a_cycle_only_when_a_thread_does_not_clamp():
+    relu = "LD R0, R7\nCMP R0, 0\nBRGT L0\nSET R0, 0\nL0:\nADD R2, R7, 8\nST R2, R0\n"
+    clamped = _run(relu, memory_init={0: [-1, -2, -3]})
+    assert (clamped.cycles, clamped.op_counts["SET"]) == (1, 3)  # every thread runs the SET
+    kept = _run(relu, memory_init={0: [1, 2, 3]})
+    assert (kept.cycles, kept.op_counts["SET"]) == (2, 0)  # every thread takes the skip branch
+    assert _run(relu, memory_init={0: [-1, 2, -3]}).read(8, 3) == [0, 2, 0]
+
+
+def test_gpu_branching_to_the_end_of_the_program_costs_a_stray_cycle():
+    src = "SET R0, 1\nSET R1, 0\nCMP R0, R1\nBRGT L9\nSET R2, 5\nL9:\n"
+    assert _run(src, grid=(1, 1)).cycles == 2  # why a kernel must not end with an `if`
+
+
+def test_gpu_addresses_may_be_immediates_and_comments_are_allowed():
+    res = _run("LD R0, 1 ; load\nADD R0, R0, 5\nST 2, R0\n", grid=(1, 1), memory_init={1: [10]})
+    assert res.read(0, 4) == [0, 10, 15, 0]
+
+
+def test_gpu_reserved_registers_are_reported_intact_after_a_normal_run():
+    assert _run("ADD R0, R7, 1\nST R7, R0\n", grid=(2, 3)).reserved_intact
+    assert not _run("SET R7, 99\n", grid=(2, 3)).reserved_intact  # the check can fail

@@ -120,3 +120,57 @@ def test_backend_flags_need_a_target(flags):
 def test_tpu_backend_rejects_what_the_chip_cannot_run(capsys):
     code, _, err = run(capsys, EX / "mlp_gpu.tiny", "--target", "tpu", "--run")
     assert code == 1 and "tiny-tpu needs i8 matmul operands" in err
+
+
+# --- tiny-gpu backend ---------------------------------------------------------------------
+
+
+def test_emit_tgpu_prints_assembly_with_source_positions(capsys):
+    code, out, _ = run(capsys, EX / "mm_relu.tiny", "--target", "gpu", "--emit", "tgpu")
+    assert code == 0 and out.startswith("; kernel k0_matmul") and "BRLT L0" in out
+    assert "; 4:5" in out
+
+
+def test_emit_kernel_and_launch(capsys):
+    import json
+
+    code, out, _ = run(capsys, EX / "mlp_gpu.tiny", "--target", "gpu", "--emit", "kernel")
+    assert code == 0 and out.count("kernel @") == 2 and "for v1 in 0..8" in out
+    code, out, _ = run(capsys, EX / "mlp_gpu.tiny", "--target", "gpu", "--emit", "launch")
+    doc = json.loads(out)
+    assert code == 0 and doc["format"] == "tgpu-launch" and len(doc["kernels"]) == 2
+
+
+def test_gpu_stats_prints_the_estimate_bounds(capsys):
+    import json
+
+    code, out, _ = run(capsys, EX / "mm_relu.tiny", "--target", "gpu", "--stats")
+    est = json.loads(out)
+    assert code == 0 and est["launches"] == 1 and est["cycles"] == {"min": 8, "max": 9}
+
+
+def test_gpu_run_executes_on_the_simulator_and_reports_measured_vs_estimate(capsys):
+    code, out, _ = run(capsys, EX / "mlp_gpu.tiny", "--target", "gpu", "--run")
+    assert code == 0 and "bit-exact vs numpy oracle: yes" in out
+    assert "R5-R7 untouched: yes" in out and "measured instructions:" in out
+    assert "straight-line code in one cycle" in out
+
+
+def test_the_same_program_runs_on_both_chips_from_the_same_seed(capsys):
+    gpu = run(capsys, EX / "mm_relu.tiny", "--target", "gpu", "--run", "--seed", "5")[1]
+    tpu = run(capsys, EX / "mm_relu.tiny", "--target", "tpu", "--run", "--seed", "5")[1]
+    matrix = lambda out: out.split("bit-exact")[0]
+    assert matrix(gpu) == matrix(tpu)
+
+
+def test_gpu_regs_budget_and_its_error(capsys):
+    assert run(capsys, EX / "mm_relu.tiny", "--target", "gpu", "--run", "--gpu-regs", "8")[0] == 0
+    code, _, err = run(capsys, EX / "mm_relu.tiny", "--target", "gpu", "--run", "--gpu-regs", "7")
+    assert code == 1 and "at least 8 registers" in err
+
+
+def test_gpu_emit_flags_need_a_gpu_target(capsys):
+    for flags in (["--emit", "tgpu"], ["--emit", "kernel", "--target", "tpu"]):
+        with pytest.raises(SystemExit) as exc:
+            main([str(EX / "mm.tiny"), *flags])
+        assert exc.value.code == 2

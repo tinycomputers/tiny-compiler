@@ -13,8 +13,6 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from typing import Protocol
 
-import numpy as np
-
 from tinyc.ir import interp, ref
 from tinyc.ir.errors import RangeError, VerifyError
 from tinyc.ir.graph import Func
@@ -30,6 +28,7 @@ class PassContext:
     i32_input_range: tuple[int, int] = (-(2**20), 2**20)
     gpu_max_threads: int = 1024  # tiny-gpu simulator speed cap
     gpu_mem_words: int = 65536  # global memory budget for the memory planner
+    gpu_num_registers: int = 16  # tiny-gpu registers per thread (R5-R7 reserved by the simulator)
     analysis: dict = field(default_factory=dict)  # e.g. analysis["ranges"] from range_check
 
 
@@ -95,14 +94,7 @@ class PassManager:
         self.num_checks, self.seed, self.dump = num_checks, seed, dump
 
     def _expectations(self, func: Func):
-        out = []
-        for i in range(self.num_checks):
-            inputs = ref.random_inputs(func, np.random.default_rng(self.seed + i))
-            try:
-                out.append((inputs, ref.evaluate(func, inputs)))
-            except RangeError:  # this input overflows in the source program itself: not usable
-                continue
-        return out
+        return ref.seeded_expectations(func, self.num_checks, self.seed)
 
     def _semantic_problem(self, func: Func, expectations) -> str | None:
         for inputs, want in expectations:

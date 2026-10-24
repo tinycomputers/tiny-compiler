@@ -198,7 +198,11 @@ Static estimates printed by `tinyc --stats` and shown before you press Run:
 - GPU: instructions issued, simulator cycles (as tiny-gpu defines them), global/shared loads
   and stores, registers used.
 After running, measured numbers sit next to the estimates. **Estimate and measurement must
-match exactly** for the TPU and for GPU instruction counts. That is a test (§5, layer 6).
+match exactly** for the TPU. On the GPU, loads and stores are exact; instructions and cycles are
+**bounds** (`min`/`max`), because relu's branch is data dependent (a clamping thread runs one more
+instruction, a non-clamping thread takes a skip branch that adds a cycle). The exact numbers for
+given inputs come from the Kernel IR interpreter, whose counts must equal the simulator's (§5,
+layer 6).
 
 ---
 
