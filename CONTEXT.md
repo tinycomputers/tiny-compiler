@@ -27,7 +27,12 @@ faked; host-side work is always labelled as host work.
 - Phase 6 (differential fuzzing + hardening): DONE. 611 tests green. `tests/test_fuzz.py` runs random programs through gpu -O0/1/2 and tpu -O0/1 on
   the real chips against the source oracle; two independent 5000-program runs were green; 13-program corner-case corpus in
   `tests/regressions/`; `fuzz-nightly.yml`; `docs/VERIFICATION.md`. The CLI compiler is now publishable on its own.
-- Next: Phase 7 (Compiler Explorer web app: Pyodide worker, pass explorer, TPU schedule view, GPU kernel view, head-to-head).
+- Phase 7 (Compiler Explorer): DONE for the MVP. 620 tests green. `web/` (Astro + React, static). Pyodide worker runs `runtime/web_api.py`
+  (compile both chips, run tiny-gpu simulator, oracle); tiny-tpu RTL (WASM) runs in the page via `runtime/ttpu-exec.mjs`.
+  Verified in a real browser: default example bit-exact on both chips; mlp_gpu at -O2 bit-exact on gpu and rejected on tpu
+  with the legality message; phone width (375px) has no horizontal scroll. Not done: CodeMirror editor (plain textarea),
+  the TPU PE-grid animation and pass-by-pass replay, Vitest/Playwright tests, the L1-L4 level tabs beyond the four views.
+- Next: Phase 8 (docs pages, landing page with hero clip, README verification table, Vercel deploy).
 
 ## Fixed decisions (do not re-litigate; change only via docs/ARCHITECTURE.md)
 | Decision | Choice |

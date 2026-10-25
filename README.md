@@ -4,7 +4,7 @@ One tiny tensor language, two real chips: `C = relu(A @ B)` compiles to
 [tiny-gpu](https://github.com/deaneeth/tiny-gpu) assembly or to a
 [tiny-tpu](https://github.com/deaneeth/tiny-tpu) tile schedule, and runs on the real simulator / RTL.
 
-**Status: Phase 6.** The frontend, optimizing pass pipeline and **both backends** work. One program,
+**Status: Phase 7.** The [Compiler Explorer](web/) runs the whole compiler in the browser. The frontend, optimizing pass pipeline and **both backends** work. One program,
 two chips, bit-exact against numpy on each:
 
 ```bash
@@ -27,3 +27,12 @@ pytest
 Requires Python 3.12+ and Node 20+ (the tiny-tpu WASM is loaded from the pinned submodule).
 
 Everything is checked against a numpy oracle on the real chips; see [docs/VERIFICATION.md](docs/VERIFICATION.md).
+
+## Compiler Explorer (web)
+
+```bash
+cd web && npm install && npm run dev      # predev copies the Python bundle and the tiny-tpu WASM into web/public
+```
+
+Open `/app`: edit a program, pick an example and `-O` level, and see every pass, both chips' output, and
+the results of running them on the real simulator and RTL.

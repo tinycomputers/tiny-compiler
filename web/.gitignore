@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+public/py/bundle.json
+public/tiny_tpu.mjs
+public/tiny_tpu.wasm
+public/runtime/ttpu-exec.mjs
+src/lib/examples.generated.ts

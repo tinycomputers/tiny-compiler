@@ -1,0 +1,25 @@
+{
+  "name": "tiny-compiler-web",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "predev": "python3 ../scripts/build_web.py",
+    "dev": "astro dev",
+    "prebuild": "python3 ../scripts/build_web.py",
+    "build": "astro build",
+    "preview": "astro preview",
+    "typecheck": "astro check && tsc --noEmit"
+  },
+  "dependencies": {
+    "@astrojs/react": "^4.0.0",
+    "astro": "^5.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.6.3"
+  }
+}
