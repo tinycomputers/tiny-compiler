@@ -32,7 +32,10 @@ faked; host-side work is always labelled as host work.
   Verified in a real browser: default example bit-exact on both chips; mlp_gpu at -O2 bit-exact on gpu and rejected on tpu
   with the legality message; phone width (375px) has no horizontal scroll. Not done: CodeMirror editor (plain textarea),
   the TPU PE-grid animation and pass-by-pass replay, Vitest/Playwright tests, the L1-L4 level tabs beyond the four views.
-- Next: Phase 8 (docs pages, landing page with hero clip, README verification table, Vercel deploy).
+- Phase 7 follow-up: web toolchain is pnpm (CLAUDE.md). `pnpm lint|typecheck|test|e2e` in `web/`; Playwright smoke (5 tests,
+  incl. warm compile < 5 s) passes; CI in `.github/workflows/web.yml`. The light/dark check only confirms the page renders in both.
+  Still open from PLAN §Phase 7: CodeMirror editor, PE-grid TPU view, pass-by-pass replay.
+- Phase 8 (docs, landing page, README verification table, Vercel deploy): DONE, deployed. Hero clip still not made.
 
 ## Fixed decisions (do not re-litigate; change only via docs/ARCHITECTURE.md)
 | Decision | Choice |
