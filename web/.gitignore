@@ -7,3 +7,5 @@ public/tiny_tpu.wasm
 public/runtime/ttpu-exec.mjs
 src/lib/examples.generated.ts
 src/pages/docs/*.md
+.vercel
+.env*
