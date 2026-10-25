@@ -9,3 +9,5 @@ src/lib/examples.generated.ts
 src/pages/docs/*.md
 .vercel
 .env*
+test-results/
+playwright-report/

@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { analyze } from "../lib/compiler";
 import { EXAMPLES } from "../lib/examples.generated";
 import { runTpu, type TpuRun } from "../lib/tpu";
-import type { Analysis, GpuRun, TpuResult } from "../lib/types";
+import { tpuExact } from "../lib/verify";
+import type { Analysis, GpuRun } from "../lib/types";
 
 type Tab = "passes" | "gpu" | "tpu" | "compare";
 const TABS: Array<[Tab, string]> = [
@@ -11,18 +12,6 @@ const TABS: Array<[Tab, string]> = [
   ["tpu", "tiny-tpu"],
   ["compare", "Run & compare"],
 ];
-
-const flat = (x: unknown): number[] => (Array.isArray(x) ? x.flatMap(flat) : [x as number]);
-
-// Compare the tiny-tpu outputs with the oracle, by position (the output order is the program's).
-function tpuExact(run: TpuRun, tpu: TpuResult, oracle: number[][]): boolean {
-  const names = tpu.program?.outputs ?? [];
-  return names.every((name, i) => {
-    const got = run.outputs[name]?.data ?? [];
-    const want = flat(oracle[i]);
-    return got.length === want.length && got.every((v, k) => v === want[k]);
-  });
-}
 
 function Code({ children }: { children: string }) {
   return <pre>{children}</pre>;
