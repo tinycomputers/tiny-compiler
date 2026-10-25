@@ -164,9 +164,32 @@ def test_the_same_program_runs_on_both_chips_from_the_same_seed(capsys):
 
 
 def test_gpu_regs_budget_and_its_error(capsys):
-    assert run(capsys, EX / "mm_relu.tiny", "--target", "gpu", "--run", "--gpu-regs", "8")[0] == 0
-    code, _, err = run(capsys, EX / "mm_relu.tiny", "--target", "gpu", "--run", "--gpu-regs", "7")
+    # -O0 is the register-frugal code, so it fits the smallest legal register file
+    base = ["--target", "gpu", "--run", "-O", "0"]
+    assert run(capsys, EX / "mm_relu.tiny", *base, "--gpu-regs", "8")[0] == 0
+    code, _, err = run(capsys, EX / "mm_relu.tiny", *base, "--gpu-regs", "7")
     assert code == 1 and "at least 8 registers" in err
+
+
+def test_o2_tiles_into_shared_memory_and_o0_does_not(capsys):
+    o2 = run(capsys, EX / "mm_relu.tiny", "--target", "gpu", "--emit", "kernel", "-O", "2")[1]
+    assert "shared=8 words" in o2 and "syncb" in o2 and "shld" in o2 and "for " not in o2
+    o0 = run(capsys, EX / "mm_relu.tiny", "--target", "gpu", "--emit", "kernel", "-O", "0")[1]
+    assert "shared" not in o0 and "syncb" not in o0 and "for v1 in 0..8" in o0
+
+
+def test_kernel_passes_can_be_disabled_by_name(capsys):
+    args = [EX / "mm_relu.tiny", "--target", "gpu", "--emit", "kernel", "-O", "2"]
+    no_tile = run(capsys, *args, "--disable", "shared-tile")[1]
+    assert "shared" not in no_tile and "for " not in no_tile  # still unrolled
+    no_unroll = run(capsys, *args, "--disable", "unroll")[1]
+    assert "shared=8 words" in no_unroll and "for v1 in 0..8" in no_unroll  # still tiled
+
+
+def test_o2_run_is_bit_exact_and_reports_shared_memory_use(capsys):
+    code, out, _ = run(capsys, EX / "mlp_gpu.tiny", "--target", "gpu", "--run", "-O", "2")
+    assert code == 0 and "bit-exact vs numpy oracle: yes" in out
+    assert "shared memory: loads" in out and "barrier executions (SYNCB)" in out
 
 
 def test_gpu_emit_flags_need_a_gpu_target(capsys):

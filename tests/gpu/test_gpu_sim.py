@@ -15,7 +15,7 @@ MM_RELU = "input A : i8[4, 8]\ninput B : i8[8, 4]\nC = relu(A @ B)\noutput C\n"
 
 
 @pytest.mark.parametrize("path", EXAMPLES, ids=lambda p: p.stem)
-@pytest.mark.parametrize("opt", [0, 1])
+@pytest.mark.parametrize("opt", [0, 1, 2])
 def test_examples_are_bit_exact_and_never_touch_the_reserved_registers(path, opt):
     comp = build(path.read_text(), opt=opt)
     for seed in (1, 2):
@@ -25,21 +25,23 @@ def test_examples_are_bit_exact_and_never_touch_the_reserved_registers(path, opt
 
 
 @pytest.mark.parametrize("path", EXAMPLES, ids=lambda p: p.stem)
-@pytest.mark.parametrize("opt", [0, 1])
-def test_estimate_bounds_contain_the_measurement_and_loads_stores_are_exact(path, opt):
+@pytest.mark.parametrize("opt", [0, 1, 2])
+def test_estimate_bounds_contain_the_measurement_and_memory_ops_are_exact(path, opt):
     comp = build(path.read_text(), opt=opt)
     est = comp.program.estimate
     res, _, _ = run_on_simulator(comp, 7)
     assert est["instructions"]["min"] <= res.instructions <= est["instructions"]["max"]
     assert est["cycles"]["min"] <= res.cycles <= est["cycles"]["max"]
     assert res.op_counts["LD"] == est["loads"] and res.op_counts["ST"] == est["stores"]
+    assert res.op_counts["SHLD"] == est["shared_loads"]
+    assert res.op_counts["SHST"] == est["shared_stores"]
     for (name, r), per in zip(res.kernels, est["per_kernel"]):
         assert name == per["name"]
         assert per["cycles"]["min"] <= r.cycles <= per["cycles"]["max"]
 
 
 @pytest.mark.parametrize("path", EXAMPLES, ids=lambda p: p.stem)
-@pytest.mark.parametrize("opt", [0, 1])
+@pytest.mark.parametrize("opt", [0, 1, 2])
 def test_interpreter_counts_equal_simulator_counts_exactly(path, opt):
     """Checks lowering, register allocation and emission together: the structured Kernel IR,
     interpreted without any registers, must execute exactly what the simulator executes."""
@@ -54,8 +56,9 @@ def test_interpreter_counts_equal_simulator_counts_exactly(path, opt):
         np.testing.assert_array_equal(got["outputs"][n], res.outputs[n])
 
 
-def test_the_estimate_bounds_are_attained_at_the_data_extremes():
-    comp = build(MM_RELU)
+@pytest.mark.parametrize("opt", [0, 1, 2])
+def test_the_estimate_bounds_are_attained_at_the_data_extremes(opt):
+    comp = build(MM_RELU, opt=opt)
     est = comp.program.estimate
     ones = np.ones((4, 8), dtype=np.int64)
     # every product positive: nothing clamps -> fewest instructions, but every thread takes the skip branch
@@ -73,10 +76,36 @@ def test_a_straight_line_kernel_is_one_cycle_however_many_instructions():
     assert res.cycles == 1 and res.instructions == 8 * 7  # 7 instructions per thread, 8 threads
 
 
+@pytest.mark.parametrize("opt", [0, 1, 2])
+def test_without_data_dependent_branches_the_estimate_is_exact_at_every_level(opt):
+    """No relu -> nothing is uncertain: instructions and cycles must equal the measurement,
+    including the barrier model of the tiled -O2 kernel."""
+    comp = build("input A : i8[4, 8]\ninput B : i8[8, 4]\nC = A @ B\noutput C\n", opt=opt)
+    est = comp.program.estimate
+    assert est["instructions"]["min"] == est["instructions"]["max"]
+    assert est["cycles"]["min"] == est["cycles"]["max"]
+    res, _, _ = run_on_simulator(comp, 5)
+    assert res.instructions == est["instructions"]["min"]
+    assert res.cycles == est["cycles"]["min"]
+    assert res.op_counts["SYNCB"] == interp_syncb(comp, res)
+
+
+def interp_syncb(comp, res):
+    inputs = ref.random_inputs(comp.func, np.random.default_rng(5))
+    got = interp.run_program(comp.program, inputs)["kernels"]
+    return sum(k.ops["SYNCB"] for k in got)
+
+
 def test_matmul_cycles_are_the_loop_trip_count_plus_the_relu_cycle():
-    comp = build(MM_RELU)  # K = 8
+    comp = build(MM_RELU, opt=1)  # K = 8, loop kept
     res, _, _ = run_on_simulator(comp, 1)
     assert res.cycles in (8, 9)  # 8 iterations; +1 when some thread does not clamp
+
+
+def test_unrolling_removes_the_loop_cycles():
+    comp = build(MM_RELU, opt=2)  # the K loop is unrolled: no taken back edges at all
+    res, _, _ = run_on_simulator(comp, 1)
+    assert res.cycles in (2, 3)  # arrive at the barrier, resume, (+1 for a non-clamping thread)
 
 
 def test_global_memory_persists_across_launches():
@@ -98,7 +127,7 @@ def test_unfused_o0_chain_matches_the_fused_o1_program():
 
 
 def test_the_smallest_legal_register_budget_still_works():
-    comp = build(MM_RELU, regs=8)
+    comp = build(MM_RELU, opt=0, regs=8)  # -O0 is the register-frugal code
     res, _, want = run_on_simulator(comp)
     assert_bit_exact(comp, res, want)
 

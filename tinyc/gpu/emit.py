@@ -17,8 +17,10 @@ def _inst_text(i: VInst, asg) -> str:
         return f"{i.label}:"
     if i.op in ("BRLT", "BRGT"):
         return f"{i.op} {i.label}"
-    if i.op == "ST":
-        return f"ST {r(i.srcs[0])}, {r(i.srcs[1])}"
+    if i.op == "SYNCB":
+        return "SYNCB"
+    if i.op in ("ST", "SHST"):
+        return f"{i.op} {r(i.srcs[0])}, {r(i.srcs[1])}"
     if i.op == "CMP":
         return f"CMP {r(i.srcs[0])}, {r(i.srcs[1])}"
     return f"{i.op} {r(i.dst)}, " + ", ".join(r(s) for s in i.srcs)
@@ -27,10 +29,11 @@ def _inst_text(i: VInst, asg) -> str:
 def emit_asm(kernel: Kernel, insts: list[VInst], alloc: Allocation) -> str:
     """tiny-gpu assembly. Comments (`;`) carry the source line:col each instruction came from."""
     where = f"{kernel.loc.file}:{kernel.loc.line}:{kernel.loc.col}" if kernel.loc else "?"
+    shared = f"; {kernel.shared_size} shared words per block" if kernel.shared_size else ""
     lines = [
         f"; kernel {kernel.name}: %{kernel.value} = {kernel.kind}  ({where})",
         (
-            f"; grid: {kernel.grid[0]} blocks x {kernel.grid[1]} threads;"
+            f"; grid: {kernel.grid[0]} blocks x {kernel.grid[1]} threads{shared};"
             f" {alloc.registers_used} registers (R5-R7 reserved, read-only)"
         ),
     ]
@@ -44,7 +47,7 @@ def emit_asm(kernel: Kernel, insts: list[VInst], alloc: Allocation) -> str:
     return "\n".join(lines) + "\n"
 
 
-def to_launch_json(prog) -> dict:
+def to_launch_json(prog, with_estimate: bool = True) -> dict:
     """`prog` is a tinyc.gpu.GpuProgram."""
     buffers = {}
     for name, r in prog.plan.buffers.items():
@@ -67,12 +70,12 @@ def to_launch_json(prog) -> dict:
                 "value": k.value,
                 "op": k.kind,
                 "grid": list(k.grid),
-                "shared_size": 0,
+                "shared_size": k.shared_size,
                 "asm": prog.asm.get(k.name, ""),  # empty before assembly (validation of the IR)
             }
             for k in prog.kernels
         ],
-        "estimate": prog.estimate,
+        "estimate": prog.estimate if with_estimate else {},
     }
 
 

@@ -1,0 +1,31 @@
+kernel @k0_matmul grid=(4 blocks, 4 threads) shared=4 words  // %0 = matmul at 4:5 {
+  v0 = set 0
+  v2 = mul block, 4
+  v8 = add thread, 16
+  v12 = add v2, thread
+  v13 = ld [v12]
+  shst [thread], v13
+  syncb
+  v5 = shld [0]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 4
+  v5 = shld [1]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 4
+  v5 = shld [2]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 4
+  v5 = shld [3]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 4
+  v11 = add tid, 32
+  st [v11], v0
+}

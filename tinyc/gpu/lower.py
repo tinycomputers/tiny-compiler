@@ -48,16 +48,20 @@ def _lower_matmul(op: Op, plan: MemPlan, name: str) -> Kernel:
     acc, k = b.fresh(), b.fresh()
     body: list = [Assign("set", acc, (0,), loc)]
 
-    t_a, x, t_b, y, p = (b.fresh() for _ in range(5))
+    # Every temporary is assigned exactly once (only acc and k change over time), which is what
+    # lets the kernel passes move and rewrite them. The adds are ordered so that the part of
+    # each address that does not depend on k comes first: &A[row][k] = (row*K + a_base) + k and
+    # &B[k][col] = ((k*N) + col) + b_base.
+    t_a1, t_a2, t_a3, x, t_b1, t_b2, t_b3, y, p = (b.fresh() for _ in range(9))
     loop = [
-        Assign("mul", t_a, (BLOCK, k_dim), loc),  # &A[row][k] = a_base + row*K + k
-        Assign("add", t_a, (t_a, k), loc),
-        Assign("add", t_a, (t_a, a_base), loc),
-        Load(x, t_a, loc),
-        Assign("mul", t_b, (k, n_dim), loc),  # &B[k][col] = b_base + k*N + col
-        Assign("add", t_b, (t_b, THREAD), loc),
-        Assign("add", t_b, (t_b, b_base), loc),
-        Load(y, t_b, loc),
+        Assign("mul", t_a1, (BLOCK, k_dim), loc),
+        Assign("add", t_a2, (t_a1, a_base), loc),
+        Assign("add", t_a3, (t_a2, k), loc),
+        Load(x, t_a3, loc),
+        Assign("mul", t_b1, (k, n_dim), loc),
+        Assign("add", t_b2, (t_b1, THREAD), loc),
+        Assign("add", t_b3, (t_b2, b_base), loc),
+        Load(y, t_b3, loc),
         Assign("mul", p, (x, y), loc),
         Assign("add", acc, (acc, p), loc),
     ]

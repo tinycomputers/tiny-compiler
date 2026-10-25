@@ -1,0 +1,58 @@
+kernel @k0_matmul grid=(4 blocks, 4 threads) shared=8 words  // %1 = matmul at 4:5 {
+  v0 = set 0
+  v2 = mul block, 8
+  v8 = add thread, 32
+  v12 = add v2, thread
+  v13 = ld [v12]
+  shst [thread], v13
+  v14 = add thread, 4
+  v15 = add v2, v14
+  v16 = ld [v15]
+  shst [v14], v16
+  syncb
+  v5 = shld [0]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 4
+  v5 = shld [1]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 4
+  v5 = shld [2]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 4
+  v5 = shld [3]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 4
+  v5 = shld [4]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 4
+  v5 = shld [5]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 4
+  v5 = shld [6]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 4
+  v5 = shld [7]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 4
+  if le v0, 0 {
+    v0 = set 0
+  }
+  v11 = add tid, 64
+  st [v11], v0
+}

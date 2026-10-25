@@ -15,6 +15,7 @@ from tinyc.frontend.ast import dump
 from tinyc.frontend.diagnostics import Diagnostic, Span
 from tinyc.gpu.emit import dumps as dumps_launch
 from tinyc.gpu.kernel_ir import print_kernel
+from tinyc.gpu.kernel_passes import KERNEL_PASSES
 from tinyc.ir import ref
 from tinyc.ir.errors import PassError
 from tinyc.ir.printer import print_func
@@ -35,10 +36,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--locs", action="store_true", help="print source locations in the IR")
     ap.add_argument("--target", choices=["gpu", "tpu"], help="also run that target's backend")
     ap.add_argument(
-        "-O", dest="opt", type=int, choices=[0, 1], default=1, help="optimization level"
-    )
+        "-O", dest="opt", type=int, choices=[0, 1, 2], default=1,
+        help="0: none; 1: graph passes + kernel licm/strength-reduce; "
+        "2: also shared-memory tiling and unrolling (gpu)",
+    )  # fmt: skip
     ap.add_argument("--disable", action="append", default=[], metavar="PASS",
-                    help=f"skip a pass ({', '.join(REGISTRY)})")  # fmt: skip
+                    help=f"skip a pass ({', '.join([*REGISTRY, *KERNEL_PASSES])})")  # fmt: skip
     ap.add_argument("--print-after-all", action="store_true", help="dump the IR after every pass")
     ap.add_argument("--print-after", action="append", default=[], metavar="PASS")
     ap.add_argument("--verify-each", action="store_true",
@@ -155,6 +158,12 @@ def _gpu_output(args, comp) -> int:
         print(f"measured instructions: {got.instructions}  (estimate {i['min']}..{i['max']})")
         print(f"measured loads: {o['LD']} (estimate {est['loads']})  "
               f"stores: {o['ST']} (estimate {est['stores']})")  # fmt: skip
+        if est["shared_loads"] or est["shared_stores"]:
+            print(
+                f"shared memory: loads {o['SHLD']} (estimate {est['shared_loads']})  "
+                f"stores {o['SHST']} (estimate {est['shared_stores']})  "
+                f"barrier executions (SYNCB): {o['SYNCB']}"
+            )
         print("note: tiny-gpu runs straight-line code in one cycle, so compare instructions too")
         return 0 if exact and got.reserved_intact else 1
     if args.stats:
