@@ -24,3 +24,4 @@ jobs:
       # The contract tests run first so a submodule bump fails loudly before anything else.
       - run: pytest tests/test_targets_contract.py
       - run: pytest
+      # 100 fixed-seed fuzz examples ride along in the full run above; the big run is fuzz-nightly.

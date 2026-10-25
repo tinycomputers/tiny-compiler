@@ -1,0 +1,4 @@
+# 900 threads in one launch
+input A : i8[30, 30]
+B = relu(A)
+output B

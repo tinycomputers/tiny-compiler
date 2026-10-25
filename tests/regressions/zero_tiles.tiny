@@ -1,0 +1,6 @@
+# constant zero blocks: skipped passes, standalone epilogue
+input X : i8[8, 4]
+input b : i32[4]
+const Z : i8[4, 8] = [[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]]
+Y = relu(Z @ X + b)
+output Y

@@ -1,0 +1,38 @@
+name: fuzz-nightly
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      examples:
+        description: "number of random programs"
+        default: "5000"
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: pip install -e ".[dev]" && pip install -e targets/tiny-gpu --no-deps
+      # Fresh programs every night (FUZZ_RANDOM=1); Hypothesis prints the seed to reproduce a failure.
+      - run: pytest tests/test_fuzz.py -x
+        env:
+          FUZZ_EXAMPLES: ${{ github.event.inputs.examples || '5000' }}
+          FUZZ_RANDOM: "1"
+      - name: Upload the shrunk failing program
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shrunk-failing-program
+          path: tests/regressions/_last_failure.tiny
+          if-no-files-found: warn

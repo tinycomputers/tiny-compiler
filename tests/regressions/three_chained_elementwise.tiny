@@ -1,0 +1,8 @@
+input A : i8[4, 4]
+input B : i8[4, 4]
+input c : i32[4]
+M = A @ B
+N = relu(M + c)
+P = N + N
+Q = relu(P)
+output Q, M

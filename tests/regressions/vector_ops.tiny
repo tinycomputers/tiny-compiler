@@ -1,0 +1,5 @@
+# rank-1 values: one block of N threads
+input a : i8[7]
+input b : i32[7]
+C = relu(a + b)
+output C

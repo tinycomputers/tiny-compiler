@@ -1,0 +1,4 @@
+const W : i8[2, 3] = [[1, -2, 3], [0, 0, 0]]
+input X : i8[3, 2]
+Y = W @ X
+output Y, W
