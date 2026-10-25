@@ -56,5 +56,89 @@ def main() -> None:
     print(f"examples: {', '.join(examples)}")
 
 
+# --- docs pages -------------------------------------------------------------------------------
+
+DOC_PAGES = [
+    # (slug, source file in docs/, title, one-line description)
+    (
+        "language",
+        "LANGUAGE.md",
+        "The language",
+        "Types, operators, broadcasting, semantics and errors.",
+    ),
+    ("ir", "IR.md", "Graph IR", "The text format of the SSA graph and its fused matmul form."),
+    (
+        "passes",
+        "PASSES.md",
+        "Passes and optimization levels",
+        "Every graph and backend pass, and the range analysis.",
+    ),
+    (
+        "architecture",
+        "ARCHITECTURE.md",
+        "Architecture",
+        "Decisions, and the measured effect of each GPU optimization.",
+    ),
+    (
+        "tpu-backend",
+        "TTPU_FORMAT.md",
+        "The tiny-tpu backend",
+        "The .ttpu.json program format and its executor.",
+    ),
+    (
+        "gpu-backend",
+        "TGPU_FORMAT.md",
+        "The tiny-gpu backend",
+        "Kernels, registers, shared memory and barriers, and the launch format.",
+    ),
+    (
+        "verification",
+        "VERIFICATION.md",
+        "Verification",
+        "Every layer that checks the compiler, and the bugs it found.",
+    ),
+]
+
+
+def _rewrite_links(text: str) -> str:
+    """Local .md links become the generated page URLs; other repo paths point at GitHub."""
+    import re
+
+    slugs = {src: f"/docs/{slug}" for slug, src, _, _ in DOC_PAGES}
+
+    def fix(m: re.Match) -> str:
+        label, target = m.group(1), m.group(2)
+        if target in slugs:
+            return f"[{label}]({slugs[target]})"
+        if target.endswith(".md") and target.startswith("docs/"):
+            return f"[{label}]({slugs.get(target[5:], target)})"
+        if not target.startswith(("http", "#", "/")):
+            return f"[{label}](https://github.com/deaneeth/tiny-compiler/blob/main/{target})"
+        return m.group(0)
+
+    return re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", fix, text)
+
+
+def build_docs() -> None:
+    out = WEB / "src" / "pages" / "docs"
+    out.mkdir(parents=True, exist_ok=True)
+    for slug, src, title, desc in DOC_PAGES:
+        body = _rewrite_links((ROOT / "docs" / src).read_text())
+        # the page's own title is the frontmatter; drop a leading H1 so it is not shown twice
+        lines = body.splitlines()
+        if lines and lines[0].startswith("# "):
+            lines = lines[1:]
+        frontmatter = (
+            "---\n"
+            f"layout: ../../layouts/Doc.astro\n"
+            f"title: {json.dumps(title)}\n"
+            f"description: {json.dumps(desc)}\n"
+            "---\n\n"
+        )
+        (out / f"{slug}.md").write_text(frontmatter + "\n".join(lines) + "\n")
+    print(f"docs pages: {len(DOC_PAGES)}")
+
+
 if __name__ == "__main__":
     main()
+    build_docs()
