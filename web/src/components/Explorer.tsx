@@ -3,6 +3,7 @@ import { analyze } from "../lib/compiler";
 import { EXAMPLES } from "../lib/examples.generated";
 import { runTpu, type TpuRun } from "../lib/tpu";
 import TpuSchedule from "./TpuSchedule";
+import SourceEditor from "./SourceEditor";
 import { tpuExact } from "../lib/verify";
 import type { Analysis, GpuRun } from "../lib/types";
 
@@ -106,13 +107,7 @@ export default function Explorer() {
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.3fr)", gap: 12 }} className="grid">
         <section className="panel">
-          <textarea
-            value={source}
-            onChange={(e) => setSource(e.target.value)}
-            spellCheck={false}
-            aria-label="source"
-            style={{ width: "100%", minHeight: 360, background: "var(--panel)", color: "var(--fg)", border: 0, resize: "vertical" }}
-          />
+          <SourceEditor value={source} onChange={setSource} label="source" />
           <p className="muted" style={{ margin: "8px 0 0" }}>
             Language: <code>input</code>, <code>const</code>, <code>output</code>, <code>@</code> (matmul), <code>+</code>
             (row broadcast), <code>relu</code>. Integers only.

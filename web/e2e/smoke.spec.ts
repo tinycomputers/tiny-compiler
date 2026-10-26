@@ -39,6 +39,12 @@ test.describe("Compiler Explorer smoke", () => {
     await expect(page.getByText(/cycle 0 \/ \d+/)).toBeVisible();
   });
 
+  test("choosing an example replaces the editor's source", async ({ page }) => {
+    await page.goto("/app");
+    await page.getByLabel("example").selectOption("mlp_gpu");
+    await expect(page.getByRole("textbox", { name: "source" })).toContainText("H = relu(X @ W1 + b1)");
+  });
+
   test("a rejected program is shown as an error, not a crash", async ({ page }) => {
     await page.goto("/app");
     await page.getByLabel("source").fill("input A : i8[2, 2]\nC = A @ A +\noutput C\n");
