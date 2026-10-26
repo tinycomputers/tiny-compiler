@@ -28,6 +28,17 @@ test.describe("Compiler Explorer smoke", () => {
     await expect(page.getByText("bit-exact").first()).toBeVisible();
   });
 
+  test("the tiny-tpu tab shows the array, cycle by cycle, from the RTL trace", async ({ page }) => {
+    await page.goto("/app");
+    await page.getByRole("button", { name: "Compile & run" }).click();
+    await expect(page.getByText("bit-exact").first()).toBeVisible({ timeout: 150_000 });
+    await page.getByRole("tab", { name: "tiny-tpu" }).click();
+    await expect(page.getByRole("img", { name: /^PE\[0\]\[0\] / }).first()).toBeVisible();
+    await expect(page.getByText(/cycle 0 \/ \d+ · IDLE|cycle 0 \/ \d+ · LOAD_WEIGHTS/)).toBeVisible();
+    await page.getByRole("button", { name: "pass 2" }).click();
+    await expect(page.getByText(/cycle 0 \/ \d+/)).toBeVisible();
+  });
+
   test("a rejected program is shown as an error, not a crash", async ({ page }) => {
     await page.goto("/app");
     await page.getByLabel("source").fill("input A : i8[2, 2]\nC = A @ A +\noutput C\n");

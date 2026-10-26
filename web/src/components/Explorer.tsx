@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { analyze } from "../lib/compiler";
 import { EXAMPLES } from "../lib/examples.generated";
 import { runTpu, type TpuRun } from "../lib/tpu";
+import TpuSchedule from "./TpuSchedule";
 import { tpuExact } from "../lib/verify";
 import type { Analysis, GpuRun } from "../lib/types";
 
@@ -184,6 +185,12 @@ export default function Explorer() {
                         (estimate)
                       </p>
                       <Code>{analysis.tpu.tile ?? ""}</Code>
+                      <h3 style={{ fontSize: 15, marginTop: 16 }}>Array, cycle by cycle</h3>
+                      {tpuRun ? (
+                        <TpuSchedule run={tpuRun} />
+                      ) : (
+                        <p className="muted">{tpuError ?? "Running on the tiny-tpu RTL…"}</p>
+                      )}
                     </>
                   )}
                 </>
@@ -269,7 +276,7 @@ function Compare({
           <tr>
             <td>cycles</td>
             <td>{gpuRun ? `${gpuRun.cycles}` : "—"}</td>
-            <td>{tpuRun ? `${tpuRun.totalCycles} (${tpuRun.passes} pass${tpuRun.passes === 1 ? "" : "es"} × 15)` : "—"}</td>
+            <td>{tpuRun ? `${tpuRun.totalCycles} (${tpuRun.passes.length} pass${tpuRun.passes.length === 1 ? "" : "es"})` : "—"}</td>
           </tr>
           <tr>
             <td>instructions</td>
