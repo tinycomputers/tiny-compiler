@@ -1,0 +1,110 @@
+kernel @k0_matmul grid=(4 blocks, 6 threads) shared=8 words  // %2 = matmul at 6:5 {
+  v0 = set 0
+  v2 = mul block, 8
+  v8 = add thread, 32
+  v14 = add v2, thread
+  v15 = ld [v14]
+  shst [thread], v15
+  v16 = add thread, 6
+  if le v16, 7 {
+    v17 = add v2, v16
+    v18 = ld [v17]
+    shst [v16], v18
+  }
+  syncb
+  v5 = shld [0]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 6
+  v5 = shld [1]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 6
+  v5 = shld [2]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 6
+  v5 = shld [3]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 6
+  v5 = shld [4]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 6
+  v5 = shld [5]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 6
+  v5 = shld [6]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 6
+  v5 = shld [7]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 6
+  v11 = add thread, 80
+  v12 = ld [v11]
+  v0 = add v0, v12
+  if le v0, 0 {
+    v0 = set 0
+  }
+  v13 = add tid, 104
+  st [v13], v0
+}
+
+kernel @k1_matmul grid=(4 blocks, 3 threads) shared=6 words  // %3 = matmul at 7:5 {
+  v0 = set 0
+  v2 = mul block, 6
+  v3 = add v2, 104
+  v8 = add thread, 86
+  v12 = add v3, thread
+  v13 = ld [v12]
+  shst [thread], v13
+  v14 = add thread, 3
+  v15 = add v3, v14
+  v16 = ld [v15]
+  shst [v14], v16
+  syncb
+  v5 = shld [0]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 3
+  v5 = shld [1]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 3
+  v5 = shld [2]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 3
+  v5 = shld [3]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 3
+  v5 = shld [4]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 3
+  v5 = shld [5]
+  v9 = ld [v8]
+  v10 = mul v5, v9
+  v0 = add v0, v10
+  v8 = add v8, 3
+  v11 = add tid, 128
+  st [v11], v0
+}

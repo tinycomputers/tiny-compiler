@@ -13,6 +13,8 @@
         "launches": 2,
         "loads": 3600,
         "registers": 4,
+        "shared_loads": 0,
+        "shared_stores": 0,
         "stores": 288,
         "threads": 288
       },
@@ -28,6 +30,8 @@
         "launches": 2,
         "loads": 30,
         "registers": 4,
+        "shared_loads": 0,
+        "shared_stores": 0,
         "stores": 12,
         "threads": 12
       },
@@ -43,6 +47,8 @@
         "launches": 4,
         "loads": 600,
         "registers": 4,
+        "shared_loads": 0,
+        "shared_stores": 0,
         "stores": 84,
         "threads": 84
       },
@@ -58,6 +64,8 @@
         "launches": 1,
         "loads": 128,
         "registers": 4,
+        "shared_loads": 0,
+        "shared_stores": 0,
         "stores": 16,
         "threads": 16
       },
@@ -73,6 +81,8 @@
         "launches": 3,
         "loads": 304,
         "registers": 4,
+        "shared_loads": 0,
+        "shared_stores": 0,
         "stores": 48,
         "threads": 48
       },
@@ -88,6 +98,8 @@
         "launches": 2,
         "loads": 272,
         "registers": 4,
+        "shared_loads": 0,
+        "shared_stores": 0,
         "stores": 32,
         "threads": 32
       }
@@ -99,12 +111,14 @@
           "min": 12
         },
         "instructions": {
-          "max": 23472,
-          "min": 23328
+          "max": 16992,
+          "min": 16848
         },
         "launches": 1,
         "loads": 3456,
-        "registers": 4,
+        "registers": 6,
+        "shared_loads": 0,
+        "shared_stores": 0,
         "stores": 144,
         "threads": 144
       },
@@ -114,12 +128,14 @@
           "min": 2
         },
         "instructions": {
-          "max": 198,
-          "min": 192
+          "max": 168,
+          "min": 162
         },
         "launches": 1,
         "loads": 24,
-        "registers": 4,
+        "registers": 6,
+        "shared_loads": 0,
+        "shared_stores": 0,
         "stores": 6,
         "threads": 6
       },
@@ -129,12 +145,14 @@
           "min": 14
         },
         "instructions": {
-          "max": 3720,
-          "min": 3696
+          "max": 2772,
+          "min": 2748
         },
         "launches": 2,
         "loads": 552,
-        "registers": 4,
+        "registers": 6,
+        "shared_loads": 0,
+        "shared_stores": 0,
         "stores": 36,
         "threads": 36
       },
@@ -144,12 +162,14 @@
           "min": 4
         },
         "instructions": {
-          "max": 896,
-          "min": 896
+          "max": 688,
+          "min": 688
         },
         "launches": 1,
         "loads": 128,
-        "registers": 4,
+        "registers": 6,
+        "shared_loads": 0,
+        "shared_stores": 0,
         "stores": 16,
         "threads": 16
       },
@@ -159,12 +179,14 @@
           "min": 8
         },
         "instructions": {
-          "max": 1824,
-          "min": 1808
+          "max": 1360,
+          "min": 1344
         },
         "launches": 1,
         "loads": 272,
-        "registers": 4,
+        "registers": 6,
+        "shared_loads": 0,
+        "shared_stores": 0,
         "stores": 16,
         "threads": 16
       },
@@ -174,12 +196,118 @@
           "min": 8
         },
         "instructions": {
-          "max": 1776,
-          "min": 1760
+          "max": 1312,
+          "min": 1296
         },
         "launches": 1,
         "loads": 256,
-        "registers": 4,
+        "registers": 6,
+        "shared_loads": 0,
+        "shared_stores": 0,
+        "stores": 16,
+        "threads": 16
+      }
+    },
+    "O2": {
+      "big_mm": {
+        "cycles": {
+          "max": 3,
+          "min": 2
+        },
+        "instructions": {
+          "max": 10368,
+          "min": 10224
+        },
+        "launches": 1,
+        "loads": 1872,
+        "registers": 5,
+        "shared_loads": 1728,
+        "shared_stores": 144,
+        "stores": 144,
+        "threads": 144
+      },
+      "const_mm": {
+        "cycles": {
+          "max": 3,
+          "min": 2
+        },
+        "instructions": {
+          "max": 132,
+          "min": 126
+        },
+        "launches": 1,
+        "loads": 18,
+        "registers": 5,
+        "shared_loads": 12,
+        "shared_stores": 6,
+        "stores": 6,
+        "threads": 6
+      },
+      "mlp_gpu": {
+        "cycles": {
+          "max": 6,
+          "min": 5
+        },
+        "instructions": {
+          "max": 1952,
+          "min": 1928
+        },
+        "launches": 2,
+        "loads": 344,
+        "registers": 5,
+        "shared_loads": 264,
+        "shared_stores": 56,
+        "stores": 36,
+        "threads": 36
+      },
+      "mm": {
+        "cycles": {
+          "max": 2,
+          "min": 2
+        },
+        "instructions": {
+          "max": 464,
+          "min": 464
+        },
+        "launches": 1,
+        "loads": 80,
+        "registers": 5,
+        "shared_loads": 64,
+        "shared_stores": 16,
+        "stores": 16,
+        "threads": 16
+      },
+      "mm_bias_relu": {
+        "cycles": {
+          "max": 3,
+          "min": 2
+        },
+        "instructions": {
+          "max": 944,
+          "min": 928
+        },
+        "launches": 1,
+        "loads": 176,
+        "registers": 5,
+        "shared_loads": 128,
+        "shared_stores": 32,
+        "stores": 16,
+        "threads": 16
+      },
+      "mm_relu": {
+        "cycles": {
+          "max": 3,
+          "min": 2
+        },
+        "instructions": {
+          "max": 896,
+          "min": 880
+        },
+        "launches": 1,
+        "loads": 160,
+        "registers": 5,
+        "shared_loads": 128,
+        "shared_stores": 32,
         "stores": 16,
         "threads": 16
       }

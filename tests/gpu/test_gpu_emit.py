@@ -20,19 +20,28 @@ def test_the_schema_itself_is_valid():
 
 
 @pytest.mark.parametrize("path", EXAMPLES, ids=lambda p: p.stem)
-@pytest.mark.parametrize("opt", [0, 1])
+@pytest.mark.parametrize("opt", [0, 1, 2])
 def test_every_launch_document_matches_the_schema(path, opt):
     comp = build(path.read_text(), opt=opt)
     validate(comp.launch)
     assert comp.launch["estimate"] == comp.program.estimate
 
 
+@pytest.mark.parametrize("opt", [0, 1, 2])
 @pytest.mark.parametrize("path", EXAMPLES, ids=lambda p: p.stem)
-def test_tgpu_assembly_golden(path, golden):
+def test_tgpu_assembly_golden(path, opt, golden):
     golden(
-        ROOT / "tests" / "golden" / "tgpu" / f"{path.stem}.tgpu",
-        build(path.read_text()).program.asm_text(),
+        ROOT / "tests" / "golden" / "tgpu" / f"O{opt}" / f"{path.stem}.tgpu",
+        build(path.read_text(), opt=opt).program.asm_text(),
     )
+
+
+def test_tiled_kernels_declare_their_shared_memory_in_the_launch_document():
+    comp = build("input A : i8[4, 8]\ninput B : i8[8, 4]\nC = A @ B\noutput C\n", opt=2)
+    (k,) = comp.launch["kernels"]
+    assert k["shared_size"] == 8 and "SYNCB" in k["asm"] and "SHLD" in k["asm"]
+    assert "8 shared words per block" in k["asm"]
+    assert comp.launch["estimate"]["per_kernel"][0]["shared_size"] == 8
 
 
 def test_emission_is_deterministic():

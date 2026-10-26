@@ -27,14 +27,29 @@ Assembler traps found by measurement (and enforced by the emitter):
 - **a kernel must not end with an `if`**: branching to the end of the program costs a stray extra
   cycle; the Kernel IR verifier rejects it.
 
+## Shared memory and barriers (`-O2`)
+`SHST saddr, Rs` / `SHLD Rd, saddr` access the block's own shared memory (`shared_size` words per
+block, declared per kernel in the launch document); `SYNCB` is a block-wide barrier. Measured and
+modelled behaviour:
+- a thread that reaches `SYNCB` stops for that step, and a **waiting thread executes `SYNCB` again on
+  every following step** until all threads of its block are waiting; then the block resumes on the next
+  step. With arrival step `s_t = taken branches before the barrier + 1` and release step `R = max s_t`,
+  a thread executes `SYNCB` `R - s_t + 1` times and finishes at step `R + taken branches after + 1`.
+  `gpu/interp.py` implements this and a test requires it to equal the simulator exactly, including for
+  hand-written kernels whose threads arrive at different times;
+- out-of-range `SHLD` silently reads 0 and out-of-range `SHST` is silently dropped in tiny-gpu; the
+  interpreter treats both as faults, so a compiler bug cannot hide;
+- the Kernel IR only allows a barrier at the top level of a kernel, so every thread reaches it.
+
 ## Cycles vs instructions
 tiny-gpu runs consecutive non-branch instructions of a thread in one step; a thread's step ends at
 a *taken* branch. A thread needs `taken branches + 1` cycles, a launch the maximum over threads. So
 a straight-line kernel is 1 cycle however long it is, and a K-iteration loop is K cycles.
 **Always read cycles together with instructions.** The relu `if` is data dependent: a thread that
 clamps runs one more instruction (`SET`); a thread that does not takes the skip branch, which adds a
-cycle. The static `estimate` therefore gives `min`/`max` for instructions and cycles; loads and
-stores are exact. `gpu.interp` gives exact counts for given inputs, and tests require them to equal
+cycle. The static `estimate` is an abstract interpretation: anything that depends only on block/thread ids is
+exact (loop trip counts, a tiled kernel's copy guards), so loads, stores and shared accesses are exact;
+only a branch on loaded data gives `min`/`max` for instructions and cycles. `gpu.interp` gives exact counts for given inputs, and tests require them to equal
 the simulator's.
 
 ## Launch document

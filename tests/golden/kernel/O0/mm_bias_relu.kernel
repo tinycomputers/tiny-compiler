@@ -1,0 +1,37 @@
+kernel @k0_matmul grid=(4 blocks, 4 threads)  // %0 = matmul at 5:10 {
+  v0 = set 0
+  for v1 in 0..8 {
+    v2 = mul block, 8
+    v3 = add v2, 0
+    v4 = add v3, v1
+    v5 = ld [v4]
+    v6 = mul v1, 4
+    v7 = add v6, thread
+    v8 = add v7, 32
+    v9 = ld [v8]
+    v10 = mul v5, v9
+    v0 = add v0, v10
+  }
+  v11 = add tid, 68
+  st [v11], v0
+}
+
+kernel @k1_add grid=(4 blocks, 4 threads)  // %1 = add at 5:10 {
+  v0 = add tid, 68
+  v1 = ld [v0]
+  v2 = add thread, 64
+  v3 = ld [v2]
+  v4 = add v1, v3
+  v5 = add tid, 84
+  st [v5], v4
+}
+
+kernel @k2_relu grid=(4 blocks, 4 threads)  // %2 = relu at 5:5 {
+  v0 = add tid, 84
+  v1 = ld [v0]
+  if le v1, 0 {
+    v1 = set 0
+  }
+  v2 = add tid, 68
+  st [v2], v1
+}

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 from tinyc.frontend import compile_to_graph
 from tinyc.gpu import GpuProgram, compile_gpu_program
+from tinyc.gpu.kernel_passes import KERNEL_PASSES
 from tinyc.ir.graph import Func
 from tinyc.passes import REGISTRY, Fixpoint, PassContext, PassManager, PassReport
 from tinyc.tpu import compile_tile_ir
@@ -35,9 +36,10 @@ def build_pipeline(
     target: str | None = None, opt_level: int = 1, disabled: Iterable[str] = ()
 ) -> list:
     off = set(disabled)
-    unknown = off - set(REGISTRY)
+    unknown = off - set(REGISTRY) - set(KERNEL_PASSES)  # kernel passes are disabled the same way
     if unknown:
-        raise ValueError(f"unknown passes: {sorted(unknown)} (known: {sorted(REGISTRY)})")
+        known = sorted(set(REGISTRY) | set(KERNEL_PASSES))
+        raise ValueError(f"unknown passes: {sorted(unknown)} (known: {known})")
     out: list = []
     group: list = []
     for n in pipeline_names(target, opt_level):
@@ -128,5 +130,7 @@ def compile_gpu(
         text, filename, target="gpu", opt_level=opt_level, disabled=disabled,
         verify_each=verify_each, ctx=ctx, dump=dump,
     )  # fmt: skip
-    program = compile_gpu_program(func, ctx, verify_each=verify_each, dump=dump)
+    program = compile_gpu_program(
+        func, ctx, opt_level=opt_level, disabled=disabled, verify_each=verify_each, dump=dump
+    )
     return GpuCompilation(func, program, report)

@@ -101,17 +101,28 @@ def test_assertion_catches_writes_to_reserved_registers():
     assert_reserved_untouched(insts, {v[0]: 4})
 
 
+@pytest.mark.parametrize("opt", [0, 1, 2])
 @pytest.mark.parametrize("path", EXAMPLES, ids=lambda p: p.stem)
-def test_real_kernels_never_use_r5_to_r7_as_destinations(path):
+def test_real_kernels_never_use_r5_to_r7_as_destinations(path, opt):
     import re
 
-    for asm in build(path.read_text()).program.asm.values():
+    for asm in build(path.read_text(), opt=opt).program.asm.values():
         for line in asm.splitlines():
-            m = re.match(r"(SET|ADD|MUL|LD) R(\d+),", line)
+            m = re.match(r"(SET|ADD|MUL|LD|SHLD) R(\d+),", line)
             if m:
                 assert int(m.group(2)) not in (5, 6, 7), line
 
 
-def test_matmul_needs_only_four_registers_and_fits_the_smallest_legal_budget():
-    comp = build("input A : i8[4, 8]\ninput B : i8[8, 4]\nC = relu(A @ B)\noutput C\n", regs=8)
-    assert comp.program.registers == {"k0_matmul": 4}
+MM_RELU = "input A : i8[4, 8]\ninput B : i8[8, 4]\nC = relu(A @ B)\noutput C\n"
+
+
+def test_naive_matmul_needs_only_four_registers_and_fits_the_smallest_legal_budget():
+    comp = build(MM_RELU, opt=0, regs=8)
+    assert comp.program.registers["k0_matmul"] == 4 and max(comp.program.registers.values()) == 4
+
+
+def test_optimizing_trades_registers_for_instructions():
+    """Hoisted addresses and pointers stay live across the loop, so -O1/-O2 need more registers."""
+    used = {o: max(build(MM_RELU, opt=o).program.registers.values()) for o in (0, 1, 2)}
+    assert used[0] == 4 and used[1] >= used[0] and used[2] >= used[0]
+    assert max(used.values()) <= 13, "must fit the default register file"

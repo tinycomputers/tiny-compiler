@@ -1,0 +1,19 @@
+kernel @k0_matmul grid=(4 blocks, 4 threads)  // %1 = matmul at 4:5 {
+  v0 = set 0
+  v2 = mul block, 8
+  v3 = add v2, 0
+  v8 = add thread, 32
+  for v1 in 0..8 {
+    v4 = add v3, v1
+    v5 = ld [v4]
+    v9 = ld [v8]
+    v10 = mul v5, v9
+    v0 = add v0, v10
+    v8 = add v8, 4
+  }
+  if le v0, 0 {
+    v0 = set 0
+  }
+  v11 = add tid, 64
+  st [v11], v0
+}

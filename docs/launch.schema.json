@@ -51,30 +51,35 @@
     },
     "estimate": {
       "type": "object",
-      "required": ["launches", "threads", "instructions", "cycles", "loads", "stores", "registers", "per_kernel"],
+      "required": ["launches", "threads", "instructions", "cycles", "loads", "stores", "shared_loads", "shared_stores", "registers", "per_kernel"],
       "additionalProperties": false,
       "properties": {
         "launches": { "type": "integer", "minimum": 0 },
         "threads": { "type": "integer", "minimum": 0 },
         "instructions": { "$ref": "#/$defs/range" },
         "cycles": { "$ref": "#/$defs/range" },
-        "loads": { "type": "integer", "minimum": 0 },
-        "stores": { "type": "integer", "minimum": 0 },
+        "loads": { "type": "integer", "minimum": 0, "description": "global loads, exact" },
+        "stores": { "type": "integer", "minimum": 0, "description": "global stores, exact" },
+        "shared_loads": { "type": "integer", "minimum": 0 },
+        "shared_stores": { "type": "integer", "minimum": 0 },
         "registers": { "type": "integer", "minimum": 0 },
         "per_kernel": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["name", "grid", "threads", "instructions", "cycles", "loads", "stores", "registers"],
+            "required": ["name", "grid", "threads", "shared_size", "instructions", "cycles", "loads", "stores", "shared_loads", "shared_stores", "registers"],
             "additionalProperties": false,
             "properties": {
               "name": { "type": "string" },
               "grid": { "type": "array", "items": { "type": "integer" }, "minItems": 2, "maxItems": 2 },
               "threads": { "type": "integer", "minimum": 1 },
+              "shared_size": { "type": "integer", "minimum": 0 },
               "instructions": { "$ref": "#/$defs/range" },
               "cycles": { "$ref": "#/$defs/range" },
               "loads": { "type": "integer", "minimum": 0 },
               "stores": { "type": "integer", "minimum": 0 },
+              "shared_loads": { "type": "integer", "minimum": 0 },
+              "shared_stores": { "type": "integer", "minimum": 0 },
               "registers": { "type": "integer", "minimum": 0 }
             }
           }

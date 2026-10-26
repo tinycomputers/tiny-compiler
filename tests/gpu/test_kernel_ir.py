@@ -55,15 +55,17 @@ def test_chained_matmuls_are_two_launches_over_shared_memory():
     assert [(k.kind, k.grid) for k in ks] == [("matmul", (4, 6)), ("matmul", (4, 3))]
 
 
+@pytest.mark.parametrize("opt", [0, 1, 2])
 @pytest.mark.parametrize("path", EXAMPLES, ids=lambda p: p.stem)
-def test_kernel_ir_golden(path, golden):
-    prog = build(path.read_text()).program
+def test_kernel_ir_golden(path, opt, golden):
+    prog = build(path.read_text(), opt=opt).program
     text = "\n".join(print_kernel(k) for k in prog.kernels)
-    golden(ROOT / "tests" / "golden" / "kernel" / f"{path.stem}.kernel", text)
+    golden(ROOT / "tests" / "golden" / "kernel" / f"O{opt}" / f"{path.stem}.kernel", text)
 
 
 def test_matmul_kernel_has_the_naive_o0_shape():
-    text = print_kernel(kernels("input A : i8[4, 8]\ninput B : i8[8, 4]\nC = A @ B\noutput C\n")[0])
+    src = "input A : i8[4, 8]\ninput B : i8[8, 4]\nC = A @ B\noutput C\n"
+    text = print_kernel(kernels(src, opt=0)[0])
     assert "for v1 in 0..8 {" in text
     assert (
         text.count("= ld [") == 2 and text.count("= mul ") == 3

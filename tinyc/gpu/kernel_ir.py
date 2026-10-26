@@ -63,6 +63,34 @@ class Store:
 
 
 @dataclass
+class SharedLoad:
+    """dst = shared[block][saddr]: the thread's own block's shared memory (tiny-gpu SHLD)."""
+
+    dst: VReg
+    saddr: Operand
+    loc: Loc | None = None
+
+
+@dataclass
+class SharedStore:
+    """shared[block][saddr] = src (tiny-gpu SHST)."""
+
+    saddr: Operand
+    src: Operand
+    loc: Loc | None = None
+
+
+@dataclass
+class Barrier:
+    """Block-wide barrier (tiny-gpu SYNCB): every thread of the block waits until all arrive.
+
+    Only allowed at the top level of a kernel, so that every thread reaches it.
+    """
+
+    loc: Loc | None = None
+
+
+@dataclass
 class For:
     """`var` counts start, start+1, ... while < stop. Always runs at least once (stop > start)."""
 
@@ -83,7 +111,7 @@ class If:
     loc: Loc | None = None
 
 
-Stmt = Assign | Load | Store | For | If
+Stmt = Assign | Load | Store | SharedLoad | SharedStore | Barrier | For | If
 
 
 @dataclass
@@ -94,6 +122,7 @@ class Kernel:
     value: str  # name of the Graph IR value this kernel computes
     kind: str  # the Graph op: "matmul" | "add" | "relu"
     loc: Loc | None = None
+    shared_size: int = 0  # words of shared memory per block (SHLD/SHST addresses 0..size-1)
 
     @property
     def threads(self) -> int:
@@ -138,10 +167,31 @@ def verify_kernel(k: Kernel) -> None:
         else:
             problems.append(f"{where}: bad operand {x!r}")
 
-    def walk(body: list, defined: set[VReg]) -> None:
+    uses_shared = False
+
+    def saddr(x: Operand, defined: set[VReg], where: str) -> None:
+        operand(x, defined, where)
+        if isinstance(x, int) and not 0 <= x < max(k.shared_size, 0):
+            problems.append(f"{where}: shared address {x} outside 0..{k.shared_size - 1}")
+
+    def walk(body: list, defined: set[VReg], top: bool = False) -> None:
+        nonlocal uses_shared
         for s in body:
             where = type(s).__name__.lower()
-            if isinstance(s, Assign):
+            if isinstance(s, SharedLoad):
+                uses_shared = True
+                saddr(s.saddr, defined, "shld")
+                defined.add(s.dst)
+            elif isinstance(s, SharedStore):
+                uses_shared = True
+                saddr(s.saddr, defined, "shst")
+                operand(s.src, defined, "shst")
+            elif isinstance(s, Barrier):
+                if not top:
+                    problems.append(
+                        "barrier inside a loop or `if`: threads of a block could miss it"
+                    )
+            elif isinstance(s, Assign):
                 arity = {"set": 1, "add": 2, "mul": 2}.get(s.op)
                 if arity is None or len(s.args) != arity:
                     problems.append(f"{where}: '{s.op}' with {len(s.args)} operands")
@@ -166,7 +216,11 @@ def verify_kernel(k: Kernel) -> None:
             else:
                 problems.append(f"unknown statement {s!r}")
 
-    walk(k.body, set())
+    walk(k.body, set(), top=True)
+    if uses_shared and k.shared_size < 1:
+        problems.append("shared memory used but shared_size is 0")
+    if k.shared_size < 0:
+        problems.append(f"negative shared_size {k.shared_size}")
     if k.body and isinstance(k.body[-1], If):
         # tiny-gpu: branching to the end of the program costs a stray extra cycle (measured)
         problems.append("a kernel must not end with an `if` (its skip label would be at the end)")
@@ -190,6 +244,12 @@ def _print_body(body: list, indent: int, out: list[str]) -> None:
             out.append(f"{pad}{s.dst} = ld [{s.addr}]")
         elif isinstance(s, Store):
             out.append(f"{pad}st [{s.addr}], {s.src}")
+        elif isinstance(s, SharedLoad):
+            out.append(f"{pad}{s.dst} = shld [{s.saddr}]")
+        elif isinstance(s, SharedStore):
+            out.append(f"{pad}shst [{s.saddr}], {s.src}")
+        elif isinstance(s, Barrier):
+            out.append(f"{pad}syncb")
         elif isinstance(s, For):
             out.append(f"{pad}for {s.var} in {s.start}..{s.stop} {{")
             _print_body(s.body, indent + 1, out)
@@ -202,8 +262,9 @@ def _print_body(body: list, indent: int, out: list[str]) -> None:
 
 def print_kernel(k: Kernel) -> str:
     where = f" at {k.loc.line}:{k.loc.col}" if k.loc else ""
+    shared = f" shared={k.shared_size} words" if k.shared_size else ""
     head = (
-        f"kernel @{k.name} grid=({k.grid[0]} blocks, {k.grid[1]} threads)"
+        f"kernel @{k.name} grid=({k.grid[0]} blocks, {k.grid[1]} threads){shared}"
         f"  // %{k.value} = {k.kind}{where}"
     )
     out = [head + " {"]
@@ -219,7 +280,7 @@ def print_kernel(k: Kernel) -> str:
 class VInst:
     """One tiny-gpu instruction over virtual registers (or a LABEL pseudo-instruction)."""
 
-    op: str  # SET ADD MUL LD ST CMP BRLT BRGT LABEL
+    op: str  # SET ADD MUL LD ST SHLD SHST SYNCB CMP BRLT BRGT LABEL
     dst: VReg | None = None
     srcs: tuple[Operand, ...] = ()
     label: str | None = None  # LABEL: the name defined; BR*: the target
@@ -244,6 +305,12 @@ def flatten(k: Kernel) -> list[VInst]:
                 out.append(VInst("LD", s.dst, (s.addr,), loc=s.loc))
             elif isinstance(s, Store):
                 out.append(VInst("ST", None, (s.addr, s.src), loc=s.loc))
+            elif isinstance(s, SharedLoad):
+                out.append(VInst("SHLD", s.dst, (s.saddr,), loc=s.loc))
+            elif isinstance(s, SharedStore):
+                out.append(VInst("SHST", None, (s.saddr, s.src), loc=s.loc))
+            elif isinstance(s, Barrier):
+                out.append(VInst("SYNCB", loc=s.loc))
             elif isinstance(s, For):
                 top = f"L{next(labels)}"
                 out.append(VInst("SET", s.var, (s.start,), loc=s.loc))

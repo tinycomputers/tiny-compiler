@@ -66,9 +66,26 @@ validates the schedule after lowering and after each tile pass, by interpreting 
 
 ## GPU backend stages
 After the graph pipeline, `compile_gpu_program` runs: memory plan (`gpu/memplan.py`) -> lowering to
-Kernel IR (`gpu/lower.py`, one kernel per op) -> verify -> flatten -> linear-scan register
-allocation (`gpu/regalloc.py`) -> `.tgpu` emission (`gpu/emit.py`). With `--verify-each` the
-structured kernels are interpreted against the numpy oracle after lowering, and the emitted assembly
-is run on the real simulator against the oracle after emission. `--print-after-all` shows
-`lower-to-kernel` and `regalloc-emit`. Phase 4 emits the straightforward (-O0) kernel code; kernel
-optimizations (loop-invariant motion, unrolling, shared-memory tiling) are Phase 5.
+Kernel IR (`gpu/lower.py`, one kernel per op) -> kernel passes (`gpu/kernel_passes.py`) -> verify ->
+flatten -> linear-scan register allocation (`gpu/regalloc.py`) -> `.tgpu` emission (`gpu/emit.py`).
+
+| `-O` | Kernel passes |
+|---|---|
+| 0 | none (the naive kernels) |
+| 1 | `licm`, `strength-reduce`, `kernel-dce` |
+| 2 | `licm`, `strength-reduce`, `shared-tile`, `unroll`, `fold`, `kernel-dce` |
+
+- `licm`: hoist single-assignment arithmetic that does not change inside a loop (never loads).
+- `strength-reduce`: replace a `mul`/`add` chain on the loop counter by a pointer bumped each iteration
+  (chains of two or more statements only; not when the value is read after the loop).
+- `kernel-dce`: remove values that never reach a store, `if` or loop control (liveness-based, so a dead
+  value that only updates itself goes too).
+- `shared-tile`: a loop load whose address is `u + k`, with `u` the same for the whole block, is copied
+  cooperatively into shared memory (`SHST`), a barrier (`SYNCB`) follows, and the loop reads `SHLD`.
+- `unroll`: full unroll of innermost loops of at most 16 iterations (the counter becomes a constant).
+- `fold`: constant propagation, constant folding, add-chain reassociation and copy propagation.
+
+With `--verify-each` the structured kernels are interpreted against the numpy oracle after lowering
+and after *every* kernel pass, and the emitted assembly is run on the real simulator against the
+oracle. `--print-after-all` shows `lower-to-kernel`, each kernel pass, and `regalloc-emit`. Each pass
+can be disabled by name. The measured effect of each is in [ARCHITECTURE.md](ARCHITECTURE.md).
