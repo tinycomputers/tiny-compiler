@@ -1,0 +1,5 @@
+func @main(%X: i8[3,2]) -> (i32[3,2]) {
+  %0 = const [[1, -2], [3, 4]] : i8[2,2]        loc("const_mm.tiny":3:1)
+  %2 = matmul{epilogue=relu} %X, %0 : i32[3,2]  loc("const_mm.tiny":5:5)
+  return %2
+}

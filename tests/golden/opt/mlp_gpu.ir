@@ -1,0 +1,5 @@
+func @main(%X: i8[4,8], %W1: i8[8,6], %b1: i32[6], %W2: i8[6,3]) -> (i32[4,3]) {
+  %2 = matmul{epilogue=bias,relu} %X, %W1, %b1 : i32[4,6]  loc("mlp_gpu.tiny":6:5)
+  %3 = matmul %2, %W2 : i32[4,3]                           loc("mlp_gpu.tiny":7:5)
+  return %3
+}

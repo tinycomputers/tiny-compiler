@@ -27,6 +27,7 @@ class Op:
     result: Value
     loc: Loc | None = None
     data: np.ndarray | None = None  # const only (int64)
+    attrs: dict[str, str] = field(default_factory=dict)  # matmul only: {"epilogue": "bias,relu"}
 
 
 @dataclass(eq=False)
@@ -35,6 +36,19 @@ class Func:
     args: list[Value] = field(default_factory=list)
     ops: list[Op] = field(default_factory=list)
     outputs: list[Value] = field(default_factory=list)
+
+    def replace_uses(self, old: Value, new: Value) -> None:
+        for op in self.ops:
+            op.operands = [new if v is old else v for v in op.operands]
+        self.outputs = [new if v is old else v for v in self.outputs]
+
+    def users(self) -> dict[str, list[Op]]:
+        """value name -> ops using it (an op appears once per operand slot it uses it in)."""
+        out: dict[str, list[Op]] = {}
+        for op in self.ops:
+            for v in op.operands:
+                out.setdefault(v.name, []).append(op)
+        return out
 
 
 class FuncBuilder:

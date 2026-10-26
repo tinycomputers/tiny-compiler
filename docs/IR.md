@@ -17,6 +17,11 @@ func @main(%A: i8[4,8], %B: i8[8,4]) -> (i32[4,4]) {
 | `matmul` | `%x = matmul %a, %b : T` |
 | `add` | `%x = add %a, %b : T` |
 | `relu` | `%x = relu %a : T` |
+| fused `matmul` | `%x = matmul{epilogue=bias,relu} %a, %b, %bias : T` (made by the `fuse` pass) |
+
+A fused matmul applies its epilogue stages in order to the matmul result: `bias` adds a rank-1
+`[N]` operand (a third operand) to every row, `relu` clamps at zero. Each stage's result must fit
+in i32, exactly as if the ops were separate. Allowed epilogues: `bias`, `relu`, `bias,relu`.
 
 - `loc("file":line:col)` is optional and points at the start of the source expression. It survives
   every lowering so the UI can map any output line back to the source.
