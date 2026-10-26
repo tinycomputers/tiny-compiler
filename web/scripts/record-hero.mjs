@@ -21,7 +21,7 @@ await page.getByRole("button", { name: "Compile & run" }).click();
 await page.getByText("bit-exact").first().waitFor({ timeout: 150_000 });
 await page.getByRole("tab", { name: "tiny-tpu" }).click();
 await page.getByRole("img", { name: /^PE\[0\]\[0\] / }).first().scrollIntoViewIfNeeded();
-await page.getByRole("button", { name: "Play" }).click();
+// The grid starts playing on arrival, so there is nothing to click; let it run through its passes.
 await page.waitForTimeout(6000);
 await page.getByRole("tab", { name: "Run & compare" }).click();
 await page.waitForTimeout(3000);
