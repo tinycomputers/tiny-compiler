@@ -6,25 +6,28 @@ import type { TpuRun } from "../lib/tpu";
 export default function TpuSchedule({ run }: { run: TpuRun }) {
   const [pass, setPass] = useState(0);
   const [cycle, setCycle] = useState(0);
-  const [playing, setPlaying] = useState(false);
+  // Play on arrival, unless the reader asked for reduced motion.
+  const [playing, setPlaying] = useState(() => !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
   const current = run.passes[pass];
   const last = current ? current.states.length - 1 : 0;
+  const lastPass = run.passes.length - 1;
 
-  // Advance one cycle per tick while playing; stop at the end of the pass.
+  // One cycle per tick. At the end of a pass, the next pass starts; the replay stops after the last.
   useEffect(() => {
     if (!playing) return;
     const id = window.setInterval(() => {
-      setCycle((c) => {
-        if (c >= last) {
-          setPlaying(false);
-          return c;
-        }
-        return c + 1;
-      });
+      if (cycle < last) {
+        setCycle(cycle + 1);
+      } else if (pass < lastPass) {
+        setPass(pass + 1);
+        setCycle(0);
+      } else {
+        setPlaying(false);
+      }
     }, 250);
     return () => window.clearInterval(id);
-  }, [playing, last]);
+  }, [playing, cycle, last, pass, lastPass]);
 
   if (!current) return <p className="muted">This program has no chip passes.</p>;
   const state = current.states[cycle];
@@ -33,6 +36,12 @@ export default function TpuSchedule({ run }: { run: TpuRun }) {
     setPass(index);
     setCycle(0);
     setPlaying(false);
+  }
+
+  function replay() {
+    setPass(0);
+    setCycle(0);
+    setPlaying(true);
   }
 
   return (
@@ -45,7 +54,9 @@ export default function TpuSchedule({ run }: { run: TpuRun }) {
         ))}
       </div>
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-        <button onClick={() => setPlaying((p) => !p)}>{playing ? "Pause" : "Play"}</button>
+        <button onClick={() => (playing ? setPlaying(false) : replay())}>
+          {playing ? "Pause" : cycle === last && pass === lastPass ? "Replay" : "Play"}
+        </button>
         <input
           type="range"
           min={0}

@@ -28,15 +28,30 @@ test.describe("Compiler Explorer smoke", () => {
     await expect(page.getByText("bit-exact").first()).toBeVisible();
   });
 
-  test("the tiny-tpu tab shows the array, cycle by cycle, from the RTL trace", async ({ page }) => {
+  test("the tiny-tpu array plays by itself, cycle by cycle, from the RTL trace", async ({ page }) => {
     await page.goto("/app");
     await page.getByRole("button", { name: "Compile & run" }).click();
     await expect(page.getByText("bit-exact").first()).toBeVisible({ timeout: 150_000 });
     await page.getByRole("tab", { name: "tiny-tpu" }).click();
     await expect(page.getByRole("img", { name: /^PE\[0\]\[0\] / }).first()).toBeVisible();
-    await expect(page.getByText(/cycle 0 \/ \d+ · IDLE|cycle 0 \/ \d+ · LOAD_WEIGHTS/)).toBeVisible();
+    // Playing on arrival: the cycle counter moves without any click.
+    await expect(page.getByText(/cycle [1-9]\d* \/ \d+/)).toBeVisible({ timeout: 10_000 });
+    await page.getByRole("button", { name: "Pause" }).click();
     await page.getByRole("button", { name: "pass 2" }).click();
     await expect(page.getByText(/cycle 0 \/ \d+/)).toBeVisible();
+  });
+
+  test("the pass replay steps through the compiler stages", async ({ page }) => {
+    await page.goto("/app");
+    await page.getByRole("button", { name: "Compile & run" }).click();
+    await expect(page.getByText("bit-exact").first()).toBeVisible({ timeout: 150_000 });
+    await page.getByRole("tab", { name: "Passes" }).click();
+    await page.getByRole("button", { name: "Replay the passes" }).click();
+    // Each stage lasts under a second, so wait for the replay to finish rather than catch one stage.
+    await expect(page.getByRole("button", { name: "Replay the passes" })).toBeVisible({ timeout: 60_000 });
+    const stage = await page.getByText(/stage \d+ of \d+/).innerText();
+    const [, last] = stage.match(/of (\d+)/) ?? [];
+    expect(stage).toBe(`stage ${last} of ${last}`);
   });
 
   test("choosing an example replaces the editor's source", async ({ page }) => {

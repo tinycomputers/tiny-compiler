@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { analyze } from "../lib/compiler";
 import { EXAMPLES } from "../lib/examples.generated";
 import { runTpu, type TpuRun } from "../lib/tpu";
@@ -67,6 +67,22 @@ export default function Explorer() {
   }
 
   const passes = analysis?.gpu && target === "gpu" ? analysis.gpu.passes : analysis?.tpu?.passes ?? [];
+  const [replaying, setReplaying] = useState(false);
+  const passCount = passes.length;
+  // Replay: step through the stages of the chosen chip's pipeline, one every 900 ms.
+  useEffect(() => {
+    if (!replaying) return;
+    const id = window.setInterval(() => {
+      setPassIndex((i) => {
+        if (i >= passCount - 1) {
+          setReplaying(false);
+          return i;
+        }
+        return i + 1;
+      });
+    }, 900);
+    return () => window.clearInterval(id);
+  }, [replaying, passCount]);
   const exactTpu = useMemo(
     () => (analysis?.tpu?.ok && tpuRun && analysis.oracle ? tpuExact(tpuRun, analysis.tpu, analysis.oracle) : null),
     [analysis, tpuRun],
@@ -141,12 +157,20 @@ export default function Explorer() {
                     <>
                       <div className="tabs">
                         {passes.map((p, i) => (
-                          <button key={i} aria-selected={i === passIndex} onClick={() => setPassIndex(i)}>
+                          <button key={i} aria-selected={i === passIndex} onClick={() => { setReplaying(false); setPassIndex(i); }}>
                             {p.name}
                           </button>
                         ))}
                       </div>
-                      <Code>{passes[passIndex]?.ir ?? ""}</Code>
+                      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
+                        <button onClick={() => { if (replaying) setReplaying(false); else { setPassIndex(0); setReplaying(true); } }}>
+                          {replaying ? "Pause" : "Replay the passes"}
+                        </button>
+                        <span className="muted">stage {passIndex + 1} of {passCount}</span>
+                      </div>
+                      <div key={passIndex} className="fade-in">
+                        <Code>{passes[passIndex]?.ir ?? ""}</Code>
+                      </div>
                       <p className="muted">Each stage is the IR after that pass. Lowering to kernels and tiles is shown as its own stage.</p>
                     </>
                   )}
