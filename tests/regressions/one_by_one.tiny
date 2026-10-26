@@ -1,0 +1,4 @@
+input A : i8[1, 1]
+input B : i8[1, 1]
+C = relu(A @ B + A @ B)
+output C

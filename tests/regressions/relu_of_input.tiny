@@ -1,0 +1,3 @@
+input A : i8[3, 3]
+R = relu(A)
+output R, A

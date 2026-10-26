@@ -1,0 +1,10 @@
+# CSE and canonicalisation must agree about operand order
+input x0 : i8[1]
+input x1 : i8[2]
+v0 = relu(x0)
+v1 = relu(x1)
+v2 = x0 + x0
+v3 = relu(x0)
+v4 = relu(x0)
+v5 = v2 + v3
+output v5

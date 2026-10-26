@@ -1,0 +1,5 @@
+# one output column: one-thread blocks (no shared tiling possible)
+input A : i8[4, 5]
+input B : i8[5, 1]
+C = A @ B
+output C

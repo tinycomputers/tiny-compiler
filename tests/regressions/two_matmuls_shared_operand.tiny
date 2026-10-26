@@ -1,0 +1,6 @@
+input A : i8[4, 4]
+input B : i8[4, 4]
+X = A @ B
+Y = B @ A
+Z = X + Y
+output Z

@@ -1,0 +1,5 @@
+# K = 20: the loop is not unrolled but A is still tiled (guarded copy rounds)
+input A : i8[2, 20]
+input B : i8[20, 3]
+C = relu(A @ B)
+output C

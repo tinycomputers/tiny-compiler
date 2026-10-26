@@ -1,0 +1,5 @@
+# reduction of length 1: a one-iteration loop, tiling of a single word
+input A : i8[3, 1]
+input B : i8[1, 3]
+C = relu(A @ B)
+output C
