@@ -41,6 +41,7 @@ def main() -> None:
     (out_py / "bundle.json").write_text(json.dumps(data))
     print(f"bundle.json: {len(data['files'])} python files")
 
+    (WEB / "public" / "runtime").mkdir(parents=True, exist_ok=True)
     tpu_public = ROOT / "targets" / "tiny-tpu" / "web" / "public"
     for name in ("tiny_tpu.mjs", "tiny_tpu.wasm"):
         shutil.copyfile(tpu_public / name, WEB / "public" / name)
