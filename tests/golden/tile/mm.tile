@@ -1,0 +1,5 @@
+tpu.schedule @main(%A: i8[4,4], %B: i8[4,4]) -> (%0) tile=4x4 {
+  host.alloc %0 : i32[4,4] = 0
+  tpu.pass #0 a=%A[0:4,0:4] b=%B[0:4,0:4]  // 15 cyc
+  host.acc %0[0:4,0:4] += #0
+}

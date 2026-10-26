@@ -39,6 +39,20 @@ class Pass(Protocol):
     def run(self, func: Func, ctx: PassContext) -> None: ...
 
 
+class Fixpoint:
+    """Run a group of passes repeatedly until a whole round changes nothing.
+
+    Simplification passes enable each other (CSE can make operands non-canonical, folding can
+    expose dead code, ...), so running each once leaves work behind and the pipeline would not be
+    idempotent. Every sub-pass is still verified, recorded and dumped on every round.
+    """
+
+    name = "fixpoint"
+
+    def __init__(self, passes: Sequence[Pass], max_iterations: int = 8):
+        self.passes, self.max_iterations = list(passes), max_iterations
+
+
 class PassVerifyError(Exception):
     def __init__(self, pass_name: str, reason: str, before: str, after: str):
         self.pass_name, self.reason, self.before, self.after = pass_name, reason, before, after
@@ -108,7 +122,10 @@ class PassManager:
         expectations = self._expectations(func) if self.verify_each else []
         if self.dump:
             self.dump("input", text)
-        for p in self.passes:
+
+        def step(p: Pass) -> bool:
+            """Run one pass with verification, recording and dumping. True if the IR changed."""
+            nonlocal text
             start = time.perf_counter()
             p.run(func, ctx)
             seconds = time.perf_counter() - start
@@ -119,8 +136,23 @@ class PassManager:
                 raise PassVerifyError(p.name, "; ".join(e.problems), text, after) from None
             if self.verify_each and (why := self._semantic_problem(func, expectations)):
                 raise PassVerifyError(p.name, why, text, after)
-            report.records.append(PassRecord(p.name, seconds, after != text, after))
+            changed = after != text
+            report.records.append(PassRecord(p.name, seconds, changed, after))
             if self.dump:
                 self.dump(p.name, after)
             text = after
+            return changed
+
+        for item in self.passes:
+            if isinstance(item, Fixpoint):
+                for _ in range(item.max_iterations):
+                    changed = [step(p) for p in item.passes]  # every sub-pass runs each round
+                    if not any(changed):
+                        break
+                else:
+                    raise RuntimeError(
+                        f"fixpoint group did not converge in {item.max_iterations} rounds"
+                    )
+            else:
+                step(item)
         return report

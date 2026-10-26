@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/deaneeth/tiny-compiler/docs/ttpu.schema.json",
+  "title": "ttpu program (version 1)",
+  "type": "object",
+  "required": ["format", "version", "tile", "name", "buffers", "inputs", "outputs", "commands", "estimate"],
+  "additionalProperties": false,
+  "properties": {
+    "format": { "const": "ttpu" },
+    "version": { "const": 1 },
+    "tile": { "const": 4 },
+    "name": { "type": "string" },
+    "buffers": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/buffer" }
+    },
+    "inputs": { "type": "array", "items": { "type": "string" } },
+    "outputs": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "commands": { "type": "array", "items": { "$ref": "#/$defs/command" } },
+    "estimate": {
+      "type": "object",
+      "required": ["passes", "passes_skipped", "cycles_per_pass", "rtl_cycles", "host_ops", "useful_macs", "capacity_macs", "utilization"],
+      "additionalProperties": false,
+      "properties": {
+        "passes": { "type": "integer", "minimum": 0 },
+        "passes_skipped": { "type": "integer", "minimum": 0 },
+        "cycles_per_pass": { "type": "integer", "minimum": 1 },
+        "rtl_cycles": { "type": "integer", "minimum": 0 },
+        "host_ops": {
+          "type": "object",
+          "required": ["alloc", "acc", "epilogue", "host_add", "host_relu"],
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "useful_macs": { "type": "integer", "minimum": 0 },
+        "capacity_macs": { "type": "integer", "minimum": 0 },
+        "utilization": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      }
+    }
+  },
+  "$defs": {
+    "buffer": {
+      "type": "object",
+      "required": ["dtype", "shape", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "dtype": { "enum": ["i8", "i32"] },
+        "shape": { "type": "array", "items": { "type": "integer", "minimum": 1 }, "minItems": 1, "maxItems": 2 },
+        "kind": { "enum": ["input", "const", "temp"] },
+        "data": { "type": "array", "description": "const buffers only: nested lists matching shape" }
+      }
+    },
+    "ref": {
+      "type": "object",
+      "required": ["buf", "r", "c"],
+      "additionalProperties": false,
+      "properties": {
+        "buf": { "type": "string" },
+        "r": { "type": "integer", "minimum": 0 },
+        "c": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "command": {
+      "oneOf": [
+        { "type": "object", "required": ["op", "buf"], "additionalProperties": false,
+          "properties": { "op": { "const": "alloc" }, "buf": { "type": "string" } } },
+        { "type": "object", "required": ["op", "id", "a", "b"], "additionalProperties": false,
+          "properties": { "op": { "const": "pass" }, "id": { "type": "integer", "minimum": 0 },
+                          "a": { "$ref": "#/$defs/ref" }, "b": { "$ref": "#/$defs/ref" } } },
+        { "type": "object", "required": ["op", "pass", "dst"], "additionalProperties": false,
+          "properties": { "op": { "const": "acc" }, "pass": { "type": "integer", "minimum": 0 },
+                          "dst": { "$ref": "#/$defs/ref" }, "bias": { "type": "string" }, "relu": { "const": true } } },
+        { "type": "object", "required": ["op", "dst"], "additionalProperties": false,
+          "properties": { "op": { "const": "epilogue" }, "dst": { "$ref": "#/$defs/ref" },
+                          "bias": { "type": "string" }, "relu": { "const": true } } },
+        { "type": "object", "required": ["op", "dst", "a", "b"], "additionalProperties": false,
+          "properties": { "op": { "const": "host_add" }, "dst": { "type": "string" },
+                          "a": { "type": "string" }, "b": { "type": "string" } } },
+        { "type": "object", "required": ["op", "dst", "src"], "additionalProperties": false,
+          "properties": { "op": { "const": "host_relu" }, "dst": { "type": "string" }, "src": { "type": "string" } } }
+      ]
+    }
+  }
+}

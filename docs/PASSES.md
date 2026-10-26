@@ -3,9 +3,16 @@
 `tinyc/driver.py` builds the pipeline; `tinyc/passes/manager.py` runs it.
 
 ```
--O1:  shape-infer, canonicalize, const-fold, canonicalize, cse, dce, fuse, range-check, [legalize-<target>]
+-O1:  shape-infer, FIXPOINT{canonicalize, const-fold, cse, dce}, fuse, range-check, [legalize-<target>]
 -O0:  shape-infer, range-check, [legalize-<target>]
 ```
+
+The four simplifications run as a **fixpoint group** (`passes.manager.Fixpoint`): they enable each
+other, so the whole group repeats until a full round changes nothing. A single sweep is not enough:
+CSE can merge an op into an earlier one and leave a commutative `add` with its operands in
+non-canonical order (Hypothesis found this; `tests/passes/test_manager.py` keeps the shrunk
+program). Every sub-pass is still verified, recorded and dumped on every round, so
+`--print-after-all` shows each round.
 
 | Pass | What it does |
 |---|---|
@@ -48,3 +55,11 @@ tinyc examples/mm_relu.tiny --disable fuse      # switch a pass off
 ```
 Dumps and timings go to stderr; the final IR goes to stdout. Exit codes: 0 ok, 1 compile or
 legalization error, 2 usage error, 3 internal compiler error (a pass broke the program).
+
+## Tile passes (tiny-tpu backend)
+After lowering to Tile IR (`tinyc/tpu/lower.py`) the `-O1` pipeline runs `skip-zero-passes`:
+a pass whose A or B window is a constant all-zero tile is removed together with its accumulation
+(its product is zero). If that accumulation carried the output tile's epilogue, the epilogue moves
+to the previous kept accumulation, becomes a standalone `epilogue` (bias present), or disappears
+(relu only: relu of the zero-initialized tile is a no-op). Pass ids are renumbered. `--verify-each`
+validates the schedule after lowering and after each tile pass, by interpreting the emitted JSON.

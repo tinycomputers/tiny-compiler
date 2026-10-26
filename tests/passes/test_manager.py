@@ -4,7 +4,7 @@ from tests.helpers import ir
 from tinyc.driver import build_pipeline, compile_graph, pipeline_names
 from tinyc.ir.printer import print_func
 from tinyc.ir.types import TensorType
-from tinyc.passes import REGISTRY, PassContext, PassManager, PassVerifyError
+from tinyc.passes import REGISTRY, Fixpoint, PassContext, PassManager, PassVerifyError
 
 SRC = "input A : i8[2, 3]\ninput B : i8[3, 2]\nC = relu(A @ B)\noutput C\n"
 
@@ -83,7 +83,10 @@ def test_pipeline_names_per_target_and_level():
 
 
 def test_disabling_passes_and_unknown_names():
-    names = [p.name for p in build_pipeline("gpu", 1, disabled=["fuse", "cse"])]
+    def flat(pipeline):
+        return [q.name for p in pipeline for q in (p.passes if isinstance(p, Fixpoint) else [p])]
+
+    names = flat(build_pipeline("gpu", 1, disabled=["fuse", "cse"]))
     assert "fuse" not in names and "cse" not in names and "dce" in names
     with pytest.raises(ValueError, match="unknown passes"):
         build_pipeline(None, 1, disabled=["nope"])
@@ -105,3 +108,54 @@ def test_a_pipeline_run_twice_is_a_no_op_the_second_time():
     f, _ = compile_graph(SRC, "t.tiny", target="gpu")
     again = PassManager(build_pipeline("gpu", 1), verify_each=True).run(f, PassContext())
     assert not any(r.changed for r in again.records)
+
+
+# --- fixpoint group ---------------------------------------------------------------------------
+
+# Found by Hypothesis (shrunk): CSE merges v3 into the earlier v0, which leaves `v2 + v0` with its
+# operands in non-canonical order. One canonicalize-then-cse sweep stops there.
+CSE_BREAKS_CANONICAL_ORDER = """\
+input x0 : i8[1]
+input x1 : i8[2]
+v0 = relu(x0)
+v1 = relu(x1)
+v2 = x0 + x0
+v3 = relu(x0)
+v4 = relu(x0)
+v5 = v2 + v3
+output v5
+"""
+SIMPLIFY = ("canonicalize", "const-fold", "cse", "dce")
+
+
+def source_func():
+    from tinyc.frontend import compile_to_graph
+
+    return compile_to_graph(CSE_BREAKS_CANONICAL_ORDER, "t.tiny")
+
+
+def test_one_sweep_of_the_simplifications_is_not_a_fixpoint():
+    f = source_func()
+    PassManager([REGISTRY[n]() for n in SIMPLIFY]).run(f)
+    assert PassManager([REGISTRY["canonicalize"]()]).run(f).records[0].changed
+
+
+def test_the_fixpoint_group_reaches_a_stable_program():
+    f = source_func()
+    group = Fixpoint([REGISTRY[n]() for n in SIMPLIFY])
+    report = PassManager([group], verify_each=True).run(f)
+    again = PassManager([group], verify_each=True).run(f)
+    assert any(r.changed for r in report.records)
+    assert not any(r.changed for r in again.records)
+    assert len(report.records) > len(SIMPLIFY)  # more than one round, each sub-pass recorded
+
+
+def test_a_fixpoint_group_that_never_settles_is_an_error():
+    class Flip:
+        name = "flip"
+
+        def run(self, func, ctx):
+            func.name = "a" if func.name != "a" else "b"
+
+    with pytest.raises(RuntimeError, match="did not converge"):
+        PassManager([Fixpoint([Flip()], max_iterations=3)]).run(func())

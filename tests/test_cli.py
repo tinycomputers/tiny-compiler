@@ -70,3 +70,53 @@ def test_front_end_errors_still_work(tmp_path, capsys):
     src.write_text("C = nope\n")
     code, _, err = run(capsys, src)
     assert code == 1 and "undefined name 'nope'" in err
+
+
+# --- tiny-tpu backend ---------------------------------------------------------------------
+
+
+def test_emit_tile_prints_the_schedule(capsys):
+    code, out, _ = run(capsys, EX / "mm_relu.tiny", "--target", "tpu", "--emit", "tile")
+    assert code == 0 and out.startswith("tpu.schedule @main") and "host.acc" in out
+    assert out.count("tpu.pass") == 2
+
+
+def test_emit_ttpu_prints_valid_json(capsys):
+    import json
+
+    code, out, _ = run(capsys, EX / "mm_bias_relu.tiny", "--target", "tpu", "--emit", "ttpu")
+    doc = json.loads(out)
+    assert code == 0 and doc["format"] == "ttpu" and doc["estimate"]["passes"] == 2
+
+
+def test_stats_prints_the_cost_estimate(capsys):
+    import json
+
+    code, out, _ = run(capsys, EX / "big_mm.tiny", "--target", "tpu", "--stats")
+    est = json.loads(out)
+    assert code == 0 and est["passes"] == 27 and est["rtl_cycles"] == 405
+
+
+def test_run_executes_on_the_real_chip_and_reports_measured_vs_estimate(capsys):
+    code, out, _ = run(capsys, EX / "big_mm.tiny", "--target", "tpu", "--run")
+    assert code == 0 and "bit-exact vs numpy oracle: yes" in out
+    assert "measured RTL cycles: 405  (estimate 405)" in out and "not chip work" in out
+
+
+def test_run_is_seeded(capsys):
+    a = run(capsys, EX / "mm.tiny", "--target", "tpu", "--run", "--seed", "1")[1]
+    b = run(capsys, EX / "mm.tiny", "--target", "tpu", "--run", "--seed", "1")[1]
+    c = run(capsys, EX / "mm.tiny", "--target", "tpu", "--run", "--seed", "2")[1]
+    assert a == b and a != c
+
+
+@pytest.mark.parametrize("flags", [["--emit", "tile"], ["--emit", "ttpu"], ["--run"], ["--stats"]])
+def test_backend_flags_need_a_target(flags):
+    with pytest.raises(SystemExit) as exc:
+        main([str(EX / "mm.tiny"), *flags])
+    assert exc.value.code == 2
+
+
+def test_tpu_backend_rejects_what_the_chip_cannot_run(capsys):
+    code, _, err = run(capsys, EX / "mlp_gpu.tiny", "--target", "tpu", "--run")
+    assert code == 1 and "tiny-tpu needs i8 matmul operands" in err
