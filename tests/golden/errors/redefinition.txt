@@ -1,0 +1,4 @@
+redefinition.tiny:2:1: error: 'A' is already defined
+2 | A = relu(A)
+  | ^^^^^^^^^^^
+  = note: first defined on line 1

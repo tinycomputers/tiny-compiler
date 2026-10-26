@@ -1,0 +1,5 @@
+func @main(%A: i8[12,12], %B: i8[12,12]) -> (i32[12,12]) {
+  %0 = matmul %A, %B : i32[12,12]  loc("big_mm.tiny":4:10)
+  %1 = relu %0 : i32[12,12]        loc("big_mm.tiny":4:5)
+  return %1
+}

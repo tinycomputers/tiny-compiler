@@ -1,0 +1,2 @@
+input A : f32[2, 2]
+output A

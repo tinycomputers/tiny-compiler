@@ -11,7 +11,9 @@ faked; host-side work is always labelled as host work.
 
 ## Status
 - Phase 0 (scaffold + drive both targets from pytest): DONE. 17 tests green (runners + target contract), ruff/black clean.
-- Next: Phase 1 (frontend + Graph IR + oracle).
+- Phase 1 (frontend + Graph IR + oracle): DONE. 90 tests green: lexer/parser/diagnostics (20 golden error messages), Graph IR
+  printer/parser round trip, verifier, numpy oracle + independent scalar interpreter, 6 examples.
+- Next: Phase 2 (pass manager + graph passes).
 
 ## Fixed decisions (do not re-litigate; change only via docs/ARCHITECTURE.md)
 | Decision | Choice |

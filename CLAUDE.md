@@ -10,16 +10,23 @@ TinyCompiler compiles a tiny tensor language (`.tiny`) to two real chips: tiny-g
 assembly on its Python simulator) and tiny-tpu (`.ttpu.json` tile schedules on its
 Verilator→WASM RTL). Pipeline: `.tiny → AST → Graph IR → Tile IR | Kernel IR → .ttpu.json | .tgpu`.
 
-## Commands (planned; fill in as Phase 0 lands)
+## Commands (backends and `--run` arrive in later phases)
 
 ```bash
 git submodule update --init
 python3 -m venv .venv && .venv/bin/pip install -e ".[dev]" && .venv/bin/pip install -e targets/tiny-gpu --no-deps
 source scripts/env.sh
-tinyc examples/mm_relu.tiny --target both -O2 --run --stats
-pytest -q                                   # full suite incl. 200 fuzz examples
+tinyc examples/mm_relu.tiny --locs          # Graph IR (or --emit ast); later: --target both -O2 --run --stats
+pytest -q                                   # full suite
+pytest --update-golden                      # rewrite tests/golden/* after reviewing the diff
 cd web && pnpm dev | build | lint | typecheck | test
 ```
 
 ## Branching
 `main` is protected: work on `feat/*`, `fix/*`, `docs/*` branches and open PRs.
+
+## Commit and PR rules
+- **Never add Claude (or any AI) as author or co-author** of a commit, PR or anything else: no
+  `Co-Authored-By: Claude ...` trailer, no "Generated with Claude Code" footer, no AI `--author`.
+  Commits carry only the repository owner's git identity.
+- Before pushing: `git log --format=%B | grep -i co-authored` must print nothing.

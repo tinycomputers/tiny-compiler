@@ -1,0 +1,2 @@
+const W : i8[2, 2] = [1, 2]
+output W

@@ -1,0 +1,5 @@
+# The headline program: C = relu(A @ B).
+input A : i8[4, 8]
+input B : i8[8, 4]
+C = relu(A @ B)
+output C

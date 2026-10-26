@@ -1,0 +1,8 @@
+# Two layers. The second matmul has an i32 operand, so only tiny-gpu can run it (tiny-tpu needs i8).
+input X : i8[4, 8]
+input W1 : i8[8, 6]
+input b1 : i32[6]
+input W2 : i8[6, 3]
+H = relu(X @ W1 + b1)
+Y = H @ W2
+output Y

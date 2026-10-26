@@ -1,0 +1,3 @@
+matmul_rank1.tiny:3:5: error: matmul needs rank-2 operands (got i8[4] @ i8[4,4])
+3 | C = A @ B
+  |     ^^^^^

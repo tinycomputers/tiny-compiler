@@ -1,0 +1,3 @@
+missing_equals.tiny:2:3: error: expected '=', found 'relu'
+2 | C relu(A)
+  |   ^^^^

@@ -1,0 +1,3 @@
+rank3.tiny:1:11: error: only rank 1 and 2 tensors are supported (got rank 3)
+1 | input A : i8[2, 2, 2]
+  |           ^^^^^^^^^^^

@@ -1,0 +1,3 @@
+add_shape_mismatch.tiny:3:5: error: add shapes are incompatible: i8[4,4] + i8[3,4] (shapes must match, or be [M,N] + [N])
+3 | C = A + B
+  |     ^^^^^

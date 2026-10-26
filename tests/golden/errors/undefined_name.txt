@@ -1,0 +1,4 @@
+undefined_name.tiny:2:10: error: undefined name 'feature'
+2 | C = relu(feature)
+  |          ^^^^^^^
+  = note: did you mean 'features'?
