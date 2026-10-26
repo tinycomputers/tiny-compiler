@@ -9,7 +9,7 @@
     "prebuild": "python3 ../scripts/build_web.py",
     "build": "astro build",
     "preview": "astro preview",
-    "typecheck": "astro check && tsc --noEmit",
+    "typecheck": "python3 ../scripts/build_web.py && astro check && tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
     "e2e": "pnpm build && playwright test"
@@ -21,6 +21,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.12",
     "@eslint/js": "^9.39.5",
     "@playwright/test": "1.48.2",
     "@types/react": "^18.3.12",
