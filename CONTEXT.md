@@ -32,10 +32,13 @@ faked; host-side work is always labelled as host work.
   Verified in a real browser: default example bit-exact on both chips; mlp_gpu at -O2 bit-exact on gpu and rejected on tpu
   with the legality message; phone width (375px) has no horizontal scroll. Not done: CodeMirror editor (plain textarea),
   the TPU PE-grid animation and pass-by-pass replay, Vitest/Playwright tests, the L1-L4 level tabs beyond the four views.
-- Phase 7 follow-up: web toolchain is pnpm (CLAUDE.md). `pnpm lint|typecheck|test|e2e` in `web/`; Playwright smoke (5 tests,
-  incl. warm compile < 5 s) passes; CI in `.github/workflows/web.yml`. The light/dark check only confirms the page renders in both.
-  Still open from PLAN §Phase 7: CodeMirror editor, PE-grid TPU view, pass-by-pass replay.
-- Phase 8 (docs, landing page, README verification table, Vercel deploy): DONE, deployed. Hero clip still not made.
+- Phase 7 follow-up (done): web toolchain is pnpm; `pnpm lint|typecheck|test|e2e` in `web/`; Playwright smoke in CI (`web.yml`).
+- Phase 9 (done): L2 TPU array view: the RTL's per-cycle state played on tiny-tpu's PEGrid (`TpuSchedule.tsx`).
+- Phase 10 (done): CodeMirror source editor (`SourceEditor.tsx`).
+- Phase 11 (done): landing-page hero clip (`web/public/hero.webm`, recorded by `web/scripts/record-hero.mjs`).
+- Done: `main` is the GitHub default branch and holds the full project; Vercel production serves it.
+- Open, needs the user: README links in the tiny-gpu and tiny-tpu repos. Branches `docs/link-tiny-compiler` are pushed to
+  `tinycomputers/tiny-gpu` and `tinycomputers/tiny-tpu` (those repos moved there); no PRs opened yet.
 
 ## Fixed decisions (do not re-litigate; change only via docs/ARCHITECTURE.md)
 | Decision | Choice |
