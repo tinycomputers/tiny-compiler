@@ -6,6 +6,7 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
 from tinyc.frontend import compile_to_graph
+from tinyc.gpu import GpuProgram, compile_gpu_program
 from tinyc.ir.graph import Func
 from tinyc.passes import REGISTRY, Fixpoint, PassContext, PassManager, PassReport
 from tinyc.tpu import compile_tile_ir
@@ -98,3 +99,34 @@ def compile_tpu(
     )  # fmt: skip
     schedule = compile_tile_ir(func, opt_level, verify_each=verify_each, dump=dump)
     return TpuCompilation(func, schedule, to_json(schedule), report)
+
+
+@dataclass
+class GpuCompilation:
+    func: Func  # the optimized, gpu-legalized Graph IR
+    program: GpuProgram  # kernels, memory plan, assembly
+    report: PassReport  # graph pass records
+
+    @property
+    def launch(self) -> dict:
+        return self.program.launch
+
+
+def compile_gpu(
+    text: str,
+    filename: str = "<input>",
+    *,
+    opt_level: int = 1,
+    disabled: Iterable[str] = (),
+    verify_each: bool = False,
+    ctx: PassContext | None = None,
+    dump: Callable[[str, str], None] | None = None,
+) -> GpuCompilation:
+    """Source text -> kernels and `.tgpu` assembly for tiny-gpu (graph passes, then the backend)."""
+    ctx = ctx or PassContext()
+    func, report = compile_graph(
+        text, filename, target="gpu", opt_level=opt_level, disabled=disabled,
+        verify_each=verify_each, ctx=ctx, dump=dump,
+    )  # fmt: skip
+    program = compile_gpu_program(func, ctx, verify_each=verify_each, dump=dump)
+    return GpuCompilation(func, program, report)

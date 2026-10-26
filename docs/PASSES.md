@@ -63,3 +63,12 @@ a pass whose A or B window is a constant all-zero tile is removed together with 
 to the previous kept accumulation, becomes a standalone `epilogue` (bias present), or disappears
 (relu only: relu of the zero-initialized tile is a no-op). Pass ids are renumbered. `--verify-each`
 validates the schedule after lowering and after each tile pass, by interpreting the emitted JSON.
+
+## GPU backend stages
+After the graph pipeline, `compile_gpu_program` runs: memory plan (`gpu/memplan.py`) -> lowering to
+Kernel IR (`gpu/lower.py`, one kernel per op) -> verify -> flatten -> linear-scan register
+allocation (`gpu/regalloc.py`) -> `.tgpu` emission (`gpu/emit.py`). With `--verify-each` the
+structured kernels are interpreted against the numpy oracle after lowering, and the emitted assembly
+is run on the real simulator against the oracle after emission. `--print-after-all` shows
+`lower-to-kernel` and `regalloc-emit`. Phase 4 emits the straightforward (-O0) kernel code; kernel
+optimizations (loop-invariant motion, unrolling, shared-memory tiling) are Phase 5.

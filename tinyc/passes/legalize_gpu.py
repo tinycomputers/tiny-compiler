@@ -11,6 +11,10 @@ class LegalizeGpu:
     name = "legalize-gpu"
 
     def run(self, func, ctx):
+        if ctx.gpu_num_registers < 8:
+            raise PassError(
+                f"tiny-gpu needs at least 8 registers (R7 holds the thread id); got {ctx.gpu_num_registers}"
+            )
         for op in func.ops:
             if op.kind != "const" and op.result.type.size > ctx.gpu_max_threads:
                 raise PassError(

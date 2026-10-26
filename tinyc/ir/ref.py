@@ -76,3 +76,16 @@ def random_inputs(
         lo, hi = RANGES["i8"] if a.type.dtype == "i8" else i32_range
         out[a.name] = rng.integers(lo, hi + 1, size=a.type.shape, dtype=np.int64)
     return out
+
+
+def seeded_expectations(func: Func, n: int, seed: int) -> list[tuple[dict, list[np.ndarray]]]:
+    """(inputs, oracle outputs) for n seeded random inputs, skipping inputs that overflow i32 in
+    the source program itself. Used by every `verify_each` translation-validation step."""
+    out = []
+    for i in range(n):
+        inputs = random_inputs(func, np.random.default_rng(seed + i))
+        try:
+            out.append((inputs, evaluate(func, inputs)))
+        except RangeError:
+            continue
+    return out

@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/deaneeth/tiny-compiler/docs/launch.schema.json",
+  "title": "tgpu launch document (version 1)",
+  "type": "object",
+  "required": ["format", "version", "name", "num_registers", "mem_size", "buffers", "inputs", "outputs", "kernels", "estimate"],
+  "additionalProperties": false,
+  "properties": {
+    "format": { "const": "tgpu-launch" },
+    "version": { "const": 1 },
+    "name": { "type": "string" },
+    "num_registers": { "type": "integer", "minimum": 8 },
+    "mem_size": { "type": "integer", "minimum": 0 },
+    "buffers": { "type": "object", "additionalProperties": { "$ref": "#/$defs/buffer" } },
+    "inputs": { "type": "array", "items": { "type": "string" } },
+    "outputs": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "kernels": { "type": "array", "items": { "$ref": "#/$defs/kernel" } },
+    "estimate": { "$ref": "#/$defs/estimate" }
+  },
+  "$defs": {
+    "buffer": {
+      "type": "object",
+      "required": ["addr", "dtype", "shape", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "addr": { "type": "integer", "minimum": 0 },
+        "dtype": { "enum": ["i8", "i32"] },
+        "shape": { "type": "array", "items": { "type": "integer", "minimum": 1 }, "minItems": 1, "maxItems": 2 },
+        "kind": { "enum": ["input", "const", "temp"] },
+        "data": { "type": "array", "description": "const buffers only: nested lists matching shape" }
+      }
+    },
+    "kernel": {
+      "type": "object",
+      "required": ["name", "value", "op", "grid", "shared_size", "asm"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "value": { "type": "string", "description": "the Graph IR value this kernel computes" },
+        "op": { "enum": ["matmul", "add", "relu"] },
+        "grid": { "type": "array", "items": { "type": "integer", "minimum": 1 }, "minItems": 2, "maxItems": 2 },
+        "shared_size": { "type": "integer", "minimum": 0 },
+        "asm": { "type": "string" }
+      }
+    },
+    "range": {
+      "type": "object",
+      "required": ["min", "max"],
+      "additionalProperties": false,
+      "properties": { "min": { "type": "integer", "minimum": 0 }, "max": { "type": "integer", "minimum": 0 } }
+    },
+    "estimate": {
+      "type": "object",
+      "required": ["launches", "threads", "instructions", "cycles", "loads", "stores", "registers", "per_kernel"],
+      "additionalProperties": false,
+      "properties": {
+        "launches": { "type": "integer", "minimum": 0 },
+        "threads": { "type": "integer", "minimum": 0 },
+        "instructions": { "$ref": "#/$defs/range" },
+        "cycles": { "$ref": "#/$defs/range" },
+        "loads": { "type": "integer", "minimum": 0 },
+        "stores": { "type": "integer", "minimum": 0 },
+        "registers": { "type": "integer", "minimum": 0 },
+        "per_kernel": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "grid", "threads", "instructions", "cycles", "loads", "stores", "registers"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "grid": { "type": "array", "items": { "type": "integer" }, "minItems": 2, "maxItems": 2 },
+              "threads": { "type": "integer", "minimum": 1 },
+              "instructions": { "$ref": "#/$defs/range" },
+              "cycles": { "$ref": "#/$defs/range" },
+              "loads": { "type": "integer", "minimum": 0 },
+              "stores": { "type": "integer", "minimum": 0 },
+              "registers": { "type": "integer", "minimum": 0 }
+            }
+          }
+        }
+      }
+    }
+  }
+}
