@@ -1,15 +1,48 @@
 ---
 import Base from "../layouts/Base.astro";
 ---
-<Base title="TinyCompiler" description="One tiny tensor program, compiled to two real chips.">
+<Base title="TinyCompiler" description="One tiny tensor program, compiled to two real chips and checked bit-exact.">
   <main>
-    <h1>TinyCompiler</h1>
-    <p>
-      One tiny tensor language (<code>C = relu(A @ B)</code>) compiled to
-      <a href="https://github.com/deaneeth/tiny-gpu">tiny-gpu</a> SIMT kernels and to a
-      <a href="https://github.com/deaneeth/tiny-tpu">tiny-tpu</a> tile schedule, and run on the
-      real simulator and RTL, bit-exact against numpy.
+    <header style="margin: 24px 0 8px">
+      <h1 style="font-size: 28px">One tensor program. Two real chips. Bit-exact.</h1>
+      <p style="font-size: 17px; max-width: 720px">
+        TinyCompiler turns <code>C = relu(A @ B)</code> into
+        <a href="https://github.com/deaneeth/tiny-gpu">tiny-gpu</a> SIMT kernels and into a
+        <a href="https://github.com/deaneeth/tiny-tpu">tiny-tpu</a> tile schedule. Both run on the real
+        simulator and the real RTL, and both match numpy exactly.
+      </p>
+      <p><a href="/app"><button class="primary">Open the Compiler Explorer</button></a> <a href="/docs/" style="margin-left: 12px">Read the docs</a></p>
+    </header>
+
+    <section class="panel" style="margin: 20px 0">
+      <h2 style="font-size: 17px; margin-top: 0">What is checked, on every commit</h2>
+      <ul style="margin: 0; padding-left: 18px">
+        <li>Every result equals a numpy oracle computed from the <em>source</em> program, on both chips.</li>
+        <li>Differential fuzzing: random programs through every backend and optimization level on the real chips; 5,000-program runs were green twice.</li>
+        <li>The chips' facts the compiler relies on are measured and pinned (tiny-tpu: 15 cycles per pass; tiny-gpu: a loop of K iterations costs K cycles).</li>
+        <li>The TPU cost model equals the measured RTL cycles exactly.</li>
+      </ul>
+    </section>
+
+    <section class="panel" style="margin: 20px 0">
+      <h2 style="font-size: 17px; margin-top: 0">Optimizing the tiny-gpu kernel (8×8 matmul + relu, measured)</h2>
+      <table>
+        <thead><tr><th>level</th><th>instructions</th><th>cycles</th><th>global loads</th></tr></thead>
+        <tbody>
+          <tr><td>-O0 naive</td><td>7320</td><td>10</td><td>1088</td></tr>
+          <tr><td>-O1 licm + strength reduction</td><td>5208 (−29%)</td><td>9</td><td>1024</td></tr>
+          <tr><td>-O2 tiling, unrolling, folding</td><td>3288 (−55%)</td><td>3</td><td>576 (−47%)</td></tr>
+        </tbody>
+      </table>
+      <p class="muted" style="margin-bottom: 0">
+        Per-pass numbers, and why -O2 is not simply better, are in <a href="/docs/architecture">the architecture notes</a>.
+      </p>
+    </section>
+
+    <p class="muted">
+      TinyCompiler is the fourth project in a series with
+      <a href="https://github.com/deaneeth/tiny-gpu">tiny-gpu</a>,
+      <a href="https://github.com/deaneeth/tiny-tpu">tiny-tpu</a> and tiny-cpu.
     </p>
-    <p><a href="/app">Open the Compiler Explorer</a></p>
   </main>
 </Base>

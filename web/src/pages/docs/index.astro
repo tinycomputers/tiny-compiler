@@ -1,0 +1,23 @@
+---
+import Base from "../../layouts/Base.astro";
+const pages = [
+  ["language", "The language", "Types, operators, broadcasting, semantics and errors."],
+  ["ir", "Graph IR", "The text format of the SSA graph and its fused matmul form."],
+  ["passes", "Passes and optimization levels", "Every graph and backend pass, and the range analysis."],
+  ["architecture", "Architecture", "Decisions, and the measured effect of each GPU optimization."],
+  ["tpu-backend", "The tiny-tpu backend", "The .ttpu.json program format and its executor."],
+  ["gpu-backend", "The tiny-gpu backend", "Kernels, registers, shared memory and barriers, and the launch format."],
+  ["verification", "Verification", "Every layer that checks the compiler, and the bugs it found."],
+];
+---
+<Base title="Docs · TinyCompiler" description="TinyCompiler documentation.">
+  <main>
+    <nav class="muted"><a href="/">Home</a> · <a href="/app">Explorer</a></nav>
+    <h1>Documentation</h1>
+    <ul>
+      {pages.map(([slug, title, desc]) => (
+        <li><a href={`/docs/${slug}`}>{title}</a>: <span class="muted">{desc}</span></li>
+      ))}
+    </ul>
+  </main>
+</Base>

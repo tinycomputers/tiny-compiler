@@ -1,5 +1,8 @@
 // The shape of the JSON that runtime/web_api.py returns.
 
+// A tensor as the oracle returns it: a scalar, or a list of tensors (row-major nesting).
+export type Tensor = number | Tensor[];
+
 export interface Pass {
   name: string;
   ir: string;
@@ -71,7 +74,7 @@ export interface Analysis {
   seed?: number;
   inputs?: Record<string, number[]>;
   outputNames?: string[];
-  oracle?: number[][] | null;
+  oracle?: Tensor[] | null;
   oracleError?: string | null;
   gpu?: GpuResult;
   tpu?: TpuResult;

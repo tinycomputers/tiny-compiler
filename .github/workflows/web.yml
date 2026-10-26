@@ -1,0 +1,38 @@
+name: web
+
+on:
+  push:
+    paths: ["web/**", "runtime/**", "tinyc/**", "scripts/build_web.py", "targets/tiny-tpu/web/public/**", ".github/workflows/web.yml"]
+  pull_request:
+    paths: ["web/**", "runtime/**", "tinyc/**", "scripts/build_web.py", "targets/tiny-tpu/web/public/**", ".github/workflows/web.yml"]
+  workflow_dispatch:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - name: Playwright smoke
+        run: pnpm exec playwright install --with-deps chromium && pnpm exec playwright test
