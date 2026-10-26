@@ -14,6 +14,22 @@ import Base from "../layouts/Base.astro";
       <p><a href="/app"><button class="primary">Open the Compiler Explorer</button></a> <a href="/docs/" style="margin-left: 12px">Read the docs</a></p>
     </header>
 
+    <figure style="margin: 20px 0">
+      <video
+        src="/hero.webm"
+        poster="/hero-poster.jpg"
+        autoplay
+        muted
+        loop
+        playsinline
+        aria-label="One program, compiled to tiny-gpu and tiny-tpu: the tiny-tpu array playing cycle by cycle on the real RTL"
+        style="width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--panel)"
+      ></video>
+      <figcaption class="muted" style="font-size: 13px; margin-top: 6px">
+        <code>C = relu(A @ B)</code> compiled to both chips. The array is tiny-tpu's real RTL, cycle by cycle, from the Compiler Explorer.
+      </figcaption>
+    </figure>
+
     <section class="panel" style="margin: 20px 0">
       <h2 style="font-size: 17px; margin-top: 0">What is checked, on every commit</h2>
       <ul style="margin: 0; padding-left: 18px">

@@ -45,6 +45,15 @@ test.describe("Compiler Explorer smoke", () => {
     await expect(page.getByRole("textbox", { name: "source" })).toContainText("H = relu(X @ W1 + b1)");
   });
 
+  test("the landing page plays the hero clip and links to the explorer", async ({ page }) => {
+    await page.goto("/");
+    const video = page.locator("video");
+    await expect(video).toHaveAttribute("src", "/hero.webm");
+    const ready = await video.evaluate((v: HTMLVideoElement) => v.readyState >= 1 || new Promise((r) => (v.onloadedmetadata = () => r(true))));
+    expect(ready).toBeTruthy();
+    await expect(page.getByRole("link", { name: "Open the Compiler Explorer" })).toHaveAttribute("href", "/app");
+  });
+
   test("a rejected program is shown as an error, not a crash", async ({ page }) => {
     await page.goto("/app");
     await page.getByLabel("source").fill("input A : i8[2, 2]\nC = A @ A +\noutput C\n");
