@@ -1,0 +1,15 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base title="TinyCompiler" description="One tiny tensor program, compiled to two real chips.">
+  <main>
+    <h1>TinyCompiler</h1>
+    <p>
+      One tiny tensor language (<code>C = relu(A @ B)</code>) compiled to
+      <a href="https://github.com/deaneeth/tiny-gpu">tiny-gpu</a> SIMT kernels and to a
+      <a href="https://github.com/deaneeth/tiny-tpu">tiny-tpu</a> tile schedule, and run on the
+      real simulator and RTL, bit-exact against numpy.
+    </p>
+    <p><a href="/app">Open the Compiler Explorer</a></p>
+  </main>
+</Base>

@@ -11,3 +11,4 @@ web/.astro/
 
 # fuzzer output (rename and commit as a regression once understood)
 tests/regressions/_last_failure.tiny
+.claude/

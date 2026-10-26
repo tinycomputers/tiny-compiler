@@ -13,6 +13,7 @@ Every claim the compiler makes is checked against something independent. Layers,
 | Differential fuzzing | random programs through *every* backend and level on the real chips | `tests/test_fuzz.py`, `tests/fuzz_support.py` |
 | Regression corpus | corner cases and past bugs, replayed everywhere | `tests/regressions/*.tiny` |
 | Goldens & pins | emitted IR/code/diagnostics; cost numbers per example and level | `tests/golden/`, `tests/perf_baseline.json` |
+| Browser entry point | `analyze()` tested on CPython; the same code runs under Pyodide in the Explorer | `tests/test_web_api.py` |
 | Docs that quote numbers | the measured optimization table must equal a fresh measurement | `tests/gpu/test_opt_table.py` |
 
 ## Differential fuzzing
