@@ -15,9 +15,9 @@
     "e2e": "pnpm build && playwright test"
   },
   "dependencies": {
-    "@astrojs/react": "^4.0.0",
+    "@astrojs/react": "^7.1.1",
     "@codemirror/state": "^6.7.6",
-    "astro": "^5.0.0",
+    "astro": "^7.4.2",
     "codemirror": "^6.0.2",
     "framer-motion": "^12.43.0",
     "react": "^18.3.1",
@@ -26,14 +26,14 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
     "@eslint/js": "^9.39.5",
-    "@playwright/test": "1.48.2",
+    "@playwright/test": "1.64.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "eslint": "^9.39.5",
     "globals": "^15.15.0",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.72.0",
-    "vitest": "^2.1.9"
+    "vitest": "^4.1.12"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
