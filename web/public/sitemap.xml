@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://tiny-compiler.vercel.app/</loc></url>
+  <url><loc>https://tiny-compiler.vercel.app/app/</loc></url>
+  <url><loc>https://tiny-compiler.vercel.app/docs/</loc></url>
+  <url><loc>https://tiny-compiler.vercel.app/docs/language/</loc></url>
+  <url><loc>https://tiny-compiler.vercel.app/docs/ir/</loc></url>
+  <url><loc>https://tiny-compiler.vercel.app/docs/passes/</loc></url>
+  <url><loc>https://tiny-compiler.vercel.app/docs/architecture/</loc></url>
+  <url><loc>https://tiny-compiler.vercel.app/docs/tpu-backend/</loc></url>
+  <url><loc>https://tiny-compiler.vercel.app/docs/gpu-backend/</loc></url>
+  <url><loc>https://tiny-compiler.vercel.app/docs/verification/</loc></url>
+</urlset>
