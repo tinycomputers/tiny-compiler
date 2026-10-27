@@ -1,15 +1,42 @@
 ---
 import "../styles/global.css";
-interface Props { title: string; description?: string }
-const { title, description = "" } = Astro.props;
+interface Props {
+  title: string;
+  description?: string;
+  keywords?: string;
+}
+const {
+  title,
+  description = "TinyCompiler compiles one tiny tensor language to the tiny-gpu SIMT simulator and the tiny-tpu systolic array, and checks every result bit-exact against numpy.",
+  keywords = "tensor compiler, GPU simulator, TPU simulator, systolic array, SIMT, matrix multiplication compiler, int8 matmul, RTL, Verilator, WebAssembly, Pyodide, compiler education, deep learning compiler, bit-exact verification",
+} = Astro.props;
+const site = "https://tiny-compiler.vercel.app";
+const url = new URL(Astro.url.pathname, site).href;
 ---
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content={description} />
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="keywords" content={keywords} />
+    <meta name="author" content="TinyCompiler contributors" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={url} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TinyCompiler" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={url} />
+    <meta property="og:image" content={`${site}/og.png`} />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="640" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={`${site}/og.png`} />
   </head>
   <body>
     <slot />
