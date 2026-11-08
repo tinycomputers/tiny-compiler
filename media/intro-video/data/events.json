@@ -1,0 +1,297 @@
+{
+ "_doc": "Each event anchors to a spoken word: [scene, word, sfx?, offset_s?, occurrence?]. Resolved to scene-relative times by scripts/build_audio.py.",
+ "s1.h1": {
+  "scene": 1,
+  "word": "What",
+  "sfx": null,
+  "offset": 0.0,
+  "n": 1
+ },
+ "s1.code": {
+  "scene": 1,
+  "word": "small",
+  "sfx": null,
+  "offset": 0.0,
+  "n": 1
+ },
+ "s1.h2": {
+  "scene": 1,
+  "word": "two",
+  "sfx": null,
+  "offset": 0.0,
+  "n": 1
+ },
+ "s1.chips": {
+  "scene": 1,
+  "word": "chips",
+  "sfx": "pop",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s2.logo": {
+  "scene": 2,
+  "word": "This",
+  "sfx": "shimmer",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s2.word": {
+  "scene": 2,
+  "word": "TinyCompiler",
+  "sfx": null,
+  "offset": 0.0,
+  "n": 1
+ },
+ "s2.tag": {
+  "scene": 2,
+  "word": "small",
+  "sfx": null,
+  "offset": 0.0,
+  "n": 1
+ },
+ "s2.l1": {
+  "scene": 2,
+  "word": "exactly",
+  "sfx": "tick",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s2.l2": {
+  "scene": 2,
+  "word": "what",
+  "sfx": "tick",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s2.l3": {
+  "scene": 2,
+  "word": "every",
+  "sfx": "tick",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s2.l4": {
+  "scene": 2,
+  "word": "level",
+  "sfx": "tick",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s3.win": {
+  "scene": 3,
+  "word": "You",
+  "sfx": null,
+  "offset": 0.0,
+  "n": 1
+ },
+ "s3.type": {
+  "scene": 3,
+  "word": "matrix",
+  "sfx": null,
+  "offset": 0.0,
+  "n": 1
+ },
+ "s3.hl": {
+  "scene": 3,
+  "word": "relu",
+  "sfx": "pop",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s3.four": {
+  "scene": 3,
+  "word": "Four",
+  "sfx": "pop",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s3.click": {
+  "scene": 3,
+  "word": "program",
+  "sfx": "click",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s4.p0": {
+  "scene": 4,
+  "word": "parsed",
+  "sfx": "tick",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s4.p1": {
+  "scene": 4,
+  "word": "type-checked",
+  "sfx": "tick",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s4.p2": {
+  "scene": 4,
+  "word": "optimizer",
+  "sfx": "tick",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s4.p3": {
+  "scene": 4,
+  "word": "optimizer",
+  "sfx": "tick",
+  "offset": 0.6,
+  "n": 1
+ },
+ "s4.p4": {
+  "scene": 4,
+  "word": "optimizer",
+  "sfx": "tick",
+  "offset": 1.2,
+  "n": 1
+ },
+ "s4.p5": {
+  "scene": 4,
+  "word": "matmul",
+  "sfx": "tick",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s4.fuse": {
+  "scene": 4,
+  "word": "fuses",
+  "sfx": "chime",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s4.legal": {
+  "scene": 4,
+  "word": "operation",
+  "sfx": "tick",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s5.gpuTab": {
+  "scene": 5,
+  "word": "tiny-GPU",
+  "sfx": "click",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s5.tpuTab": {
+  "scene": 5,
+  "word": "tiny-TPU",
+  "sfx": "click",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s6.tab": {
+  "scene": 6,
+  "word": "real",
+  "sfx": "click",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s6.gpu": {
+  "scene": 6,
+  "word": "tiny-GPU",
+  "sfx": "tick",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s6.tpu": {
+  "scene": 6,
+  "word": "tiny-TPU",
+  "sfx": "tick",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s6.numpy": {
+  "scene": 6,
+  "word": "NumPy",
+  "sfx": "pop",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s6.ok1": {
+  "scene": 6,
+  "word": "match",
+  "sfx": "chime",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s6.ok2": {
+  "scene": 6,
+  "word": "bit",
+  "sfx": "chime",
+  "offset": 0,
+  "n": 2
+ },
+ "s7.bars": {
+  "scene": 7,
+  "word": "kernel",
+  "sfx": "pop",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s7.count": {
+  "scene": 7,
+  "word": "fifty-five",
+  "sfx": "thump",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s7.loads": {
+  "scene": 7,
+  "word": "naive",
+  "sfx": "tick",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s7.measured": {
+  "scene": 7,
+  "word": "Measured",
+  "sfx": "pop",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s8.grid": {
+  "scene": 8,
+  "word": "Every",
+  "sfx": "tick",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s8.stamp": {
+  "scene": 8,
+  "word": "Nothing",
+  "sfx": "chime",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s9.brand": {
+  "scene": 9,
+  "word": "Open",
+  "sfx": "shimmer",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s9.head": {
+  "scene": 9,
+  "word": "Open",
+  "sfx": null,
+  "offset": 0.0,
+  "n": 1
+ },
+ "s9.click": {
+  "scene": 9,
+  "word": "Explorer",
+  "sfx": "click",
+  "offset": 0.0,
+  "n": 1
+ },
+ "s9.final": {
+  "scene": 9,
+  "word": "now",
+  "sfx": "chime",
+  "offset": 0.0,
+  "n": 1
+ }
+}

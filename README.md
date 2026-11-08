@@ -18,7 +18,15 @@
   </p>
 </div>
 
-![TinyCompiler: one tensor program compiled to a GPU and a TPU and checked bit-exact against numpy](docs/assets/social-card.png)
+<div align="center">
+
+**▶ Watch the 78-second intro, with narration**
+
+[![TinyCompiler intro: a tensor program compiled to a GPU and a TPU, checked bit-exact against numpy](docs/media/tinycompiler-preview.gif)](docs/media/tinycompiler-intro.mp4)
+
+[Play the full intro with sound](docs/media/tinycompiler-intro.mp4) · [Try it in your browser](https://tiny-compiler.vercel.app/app)
+
+</div>
 
 TinyCompiler takes one small tensor program, such as `C = relu(A @ B)`, and compiles it to two
 very different chips. It produces **tiny-gpu** SIMT assembly that runs on a cycle-level GPU
@@ -224,6 +232,7 @@ examples/       .tiny programs used by the tests and the Explorer
 tests/          pytest suite: goldens, properties, fuzzing, regressions
 scripts/        build_web.py (browser bundle), opt_table.py (measured table)
 docs/           language, IR, pass, backend and verification documentation
+media/          intro video: Remotion source in media/intro-video, rendered MP4 and GIF in docs/media
 web/            the Compiler Explorer and the docs site (Astro, React, Pyodide)
 targets/        tiny-gpu and tiny-tpu, as git submodules
 ```

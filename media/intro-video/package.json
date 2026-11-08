@@ -1,0 +1,21 @@
+{
+  "name": "tiny-compiler-video",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Remotion source for the TinyCompiler intro video",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "audio": "python3 scripts/build_audio.py",
+    "render": "remotion render src/index.ts TinyCompilerIntro out/tinycompiler-intro.mp4 --codec h264 --crf 16",
+    "still": "remotion still src/index.ts TinyCompilerIntro"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.541",
+    "@remotion/google-fonts": "^4.0.541",
+    "@types/react": "^18.3.31",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.541",
+    "typescript": "^7.0.2"
+  }
+}

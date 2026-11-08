@@ -1,0 +1,46 @@
+{
+  "voice": "en-US-AndrewMultilingualNeural",
+  "rate": "+0%",
+  "pitch": "-2Hz",
+  "sentence_pause": 0.2,
+  "scenes": {
+    "1": [
+      "What if one small program could run on two completely different chips?"
+    ],
+    "2": [
+      "This is TinyCompiler.",
+      "A small compiler for tensor programs, built so you can see exactly what happens at every level."
+    ],
+    "3": [
+      "You write a matrix multiply and a relu.",
+      "Four lines. That's the entire program."
+    ],
+    "4": [
+      "It moves through real stages.",
+      "First it is parsed and type-checked. Then the optimizer fuses the matmul and the relu into one operation."
+    ],
+    "5": [
+      "From there, the program splits.",
+      "One path emits assembly for tiny-GPU.",
+      "The other builds a tile schedule for tiny-TPU."
+    ],
+    "6": [
+      "Both run for real.",
+      "tiny-GPU executes on its cycle-accurate simulator. tiny-TPU runs the actual R T L, right in your browser.",
+      "And both match NumPy, bit for bit."
+    ],
+    "7": [
+      "Now turn on dash O two.",
+      "The kernel needs fifty-five percent fewer instructions than the naive build.",
+      "Measured, not estimated."
+    ],
+    "8": [
+      "Every change is checked against thousands of random programs.",
+      "Nothing on screen is faked."
+    ],
+    "9": [
+      "Open the Compiler Explorer, and compile your first tensor program.",
+      "It runs in your browser. Try it now."
+    ]
+  }
+}
